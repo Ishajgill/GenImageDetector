@@ -4,7 +4,7 @@ BASE_DIR="/nfs/turbo/umd-anglial/GenImageDetector/raw_dataset_zip"
 mkdir -p "$BASE_DIR"
 cd "$BASE_DIR" || exit
 
-STB_DIFF_V_1_5_DIR="$BASE_DIR/stable_diffusion_v_1_4"
+STB_DIFF_V_1_5_DIR="$BASE_DIR/stable_diffusion_v_1_5"
 mkdir -p "$STB_DIFF_V_1_5_DIR"
 cd "$STB_DIFF_V_1_5_DIR" || exit
 
