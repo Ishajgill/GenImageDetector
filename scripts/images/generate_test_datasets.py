@@ -6,9 +6,9 @@ from PIL import Image
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 IMG_DIR = os.path.join(BASE_DIR, "random_images")
 
-MAX_DIR = 10
+MAX_DIR = 6
 MAX_DEPTH = 3
-MAX_IMAGES_PER_FOLDER = 20
+MAX_IMAGES_PER_FOLDER = 10
 
 
 def make_random_image(path):
