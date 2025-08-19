@@ -25,33 +25,41 @@ function App() {
     reader.readAsDataURL(image);
   }, [image]);
 
-  const analyzeImage = () => {
+  const analyzeImage = async () => {
     if (!image) return;
 
     setLoading(true);
     setResults(null);
 
-    // Simulate backend processing
-    setTimeout(() => {
-      setLoading(false);
+    const formData = new FormData();
+    formData.append("file", image);
 
-      setResults([
-        { model: "Swin Transformer V2", confidence: 78, verdict: "Likely AI" },
-        { model: "EfficientNet-B7", confidence: 65, verdict: "Uncertain" },
-        { model: "CLIP ViT-L/14", confidence: 84, verdict: "Likely AI" },
-      ]);
-    }, 2000);
+    try {
+      const res = await fetch("http://localhost:8000/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      setResults(data.results);
+    } catch (err) {
+      console.error("Upload failed:", err);
+      alert("Error analyzing image");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <h1>GenImageDetector</h1>
+
       <div
         className="card"
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "1rem", // space between items
+          gap: "1rem",
         }}
       >
         <input
@@ -89,6 +97,7 @@ function App() {
         {results && (
           <div style={{ marginTop: "1rem" }}>
             <h3>Analysis Results</h3>
+
             <table
               style={{
                 borderCollapse: "collapse",
@@ -110,6 +119,7 @@ function App() {
                   <th style={{ borderBottom: "1px solid #ccc" }}>Verdict</th>
                 </tr>
               </thead>
+
               <tbody>
                 {results.map((r, idx) => (
                   <tr key={idx}>
@@ -135,6 +145,7 @@ function App() {
                 ))}
               </tbody>
             </table>
+
             <div style={{ marginTop: "0.5rem", fontWeight: "bold" }}>
               Final conclusion:{" "}
               {Math.round(
