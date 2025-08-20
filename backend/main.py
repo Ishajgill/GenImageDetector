@@ -5,7 +5,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
 
-from analyzers.deepfake_detector_model_v1 import analyze as ddm_analyze
+from classifiers.base import BaseImageClassifier
+
+
+ddm_classifier = BaseImageClassifier(
+    "prithivMLmods/deepfake-detector-model-v1",
+    {"0": "Fake", "1": "Real"},
+    "Real",
+)
+avh_classifier = BaseImageClassifier(
+    "dima806/ai_vs_human_generated_image_detection",
+    {'1': "AI-generated", '0': "human"},
+    "human",
+)
+nyuad_classifier = BaseImageClassifier(
+    "NYUAD-ComNets/NYUAD_AI-generated_images_detector",
+    {"0": "dalle", "1": "real", "2": "sd"},
+)
 
 app = FastAPI()
 
@@ -27,11 +43,14 @@ async def analyze_image(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid image: {e}")
 
-    ddm_real_confidence = ddm_analyze(img)
+    ddm_real_confidence = ddm_classifier.analyze(img)
+    avh_real_confidence = avh_classifier.analyze(img)
+    nyuad_real_confidence = nyuad_classifier.analyze(img)
 
     real_confidences = [
-        ddm_real_confidence
-        # include other model results here...
+        ddm_real_confidence,
+        avh_real_confidence,
+        nyuad_real_confidence,
     ]
     final_confidence = sum(real_confidences) / len(real_confidences)
 
@@ -41,6 +60,14 @@ async def analyze_image(file: UploadFile = File(...)):
                 {
                     "model": "deepfake-detector-model-v1",
                     "confidence": ddm_real_confidence,
+                },
+                {
+                    "model": "ai_vs_human_generated_image_detection",
+                    "confidence": avh_real_confidence,
+                },
+                {
+                    "model": "NYUAD_AI-generated_images_detector",
+                    "confidence": nyuad_real_confidence,
                 },
             ],
             "analysis": {
