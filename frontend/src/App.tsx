@@ -1,20 +1,33 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
+const REAL_CONFIDENCE_THRESHOLD = 85;
+
 interface Result {
   model: string;
   confidence: number;
-  verdict: string;
 }
+
+const confidenceToString = (
+  confidence: number,
+  highString = "Likely Real",
+  lowString = "Likely AI-generated",
+  threshold = REAL_CONFIDENCE_THRESHOLD
+) => (confidence > threshold ? highString : lowString);
 
 function App() {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Result[] | null>(null);
+  const [analysis, setAnalysis] = useState<Result | null>(null);
 
   useEffect(() => {
     if (!image) return;
+
+    // reset results & analysis
+    setResults(null);
+    setAnalysis(null);
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -41,7 +54,9 @@ function App() {
       });
 
       const data = await res.json();
+
       setResults(data.results);
+      setAnalysis(data.analysis);
     } catch (err) {
       console.error("Upload failed:", err);
       alert("Error analyzing image");
@@ -64,7 +79,7 @@ function App() {
       >
         <input
           type="file"
-          accept="image/*"
+          accept="image/png, image/jpeg"
           onChange={(e) => {
             if (e.target.files) {
               setImage(e.target.files[0]);
@@ -96,7 +111,7 @@ function App() {
 
         {results && (
           <div style={{ marginTop: "1rem" }}>
-            <h3>Analysis Results</h3>
+            <h2>Results</h2>
 
             <table
               style={{
@@ -131,30 +146,26 @@ function App() {
                       style={{
                         padding: "4px 8px",
                         textAlign: "center",
-                        color:
-                          r.verdict === "Likely AI"
-                            ? "var(--error-text, red)"
-                            : r.verdict === "Likely Human"
-                            ? "var(--success-text, green)"
-                            : "var(--warning-text, yellow)",
+                        color: confidenceToString(
+                          r.confidence,
+                          "var(--success-text, green)",
+                          "var(--error-text, red)"
+                        ),
                       }}
                     >
-                      {r.verdict}
+                      {confidenceToString(r.confidence)}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
-            <div style={{ marginTop: "0.5rem", fontWeight: "bold" }}>
-              Final conclusion:{" "}
-              {Math.round(
-                results.reduce((sum, r) => sum + r.confidence, 0) /
-                  results.length
-              ) > 70
-                ? "Image is likely AI-generated"
-                : "Image origin is uncertain"}
-            </div>
+            {analysis && (
+              <h3 style={{ marginTop: "1rem" }}>
+                Final Analysis: {confidenceToString(analysis.confidence)} (
+                {analysis.confidence}%)
+              </h3>
+            )}
           </div>
         )}
       </div>

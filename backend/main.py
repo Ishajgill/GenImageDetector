@@ -1,7 +1,11 @@
-from fastapi import FastAPI, UploadFile, File
+import io
+
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import random
+from PIL import Image
+
+from analyzers.deepfake_detector_model_v1 import analyze as ddm_analyze
 
 app = FastAPI()
 
@@ -17,22 +21,31 @@ app.add_middleware(
 
 @app.post("/analyze")
 async def analyze_image(file: UploadFile = File(...)):
-    model_results = [
-        {
-            "model": "Swin Transformer V2",
-            "confidence": random.randint(70, 90),
-            "verdict": "Likely AI",
-        },
-        {
-            "model": "EfficientNet-B7",
-            "confidence": random.randint(60, 80),
-            "verdict": "Uncertain",
-        },
-        {
-            "model": "CLIP ViT-L/14",
-            "confidence": random.randint(75, 95),
-            "verdict": "Likely AI",
-        },
-    ]
+    img_bytes = await file.read()
+    try:
+        img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid image: {e}")
 
-    return JSONResponse(content={"results": model_results})
+    ddm_real_confidence = ddm_analyze(img)
+
+    real_confidences = [
+        ddm_real_confidence
+        # include other model results here...
+    ]
+    final_confidence = sum(real_confidences) / len(real_confidences)
+
+    return JSONResponse(
+        content={
+            "results": [
+                {
+                    "model": "deepfake-detector-model-v1",
+                    "confidence": ddm_real_confidence,
+                },
+            ],
+            "analysis": {
+                'model': 'gid-final',
+                "confidence": round(final_confidence, 1),
+            },
+        }
+    )
