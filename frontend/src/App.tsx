@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-const REAL_CONFIDENCE_THRESHOLD = 85;
+const REAL_CONFIDENCE_THRESHOLD = 55;
 
 interface Result {
   model: string;
@@ -191,11 +191,17 @@ function App() {
                         color: confidenceToString(
                           analysis.confidence,
                           "var(--success-text, green)",
-                          "var(--error-text, red)"
+                          "var(--error-text, red)",
+                          24
                         ),
                       }}
                     >
-                      {confidenceToString(analysis.confidence)}
+                      {confidenceToString(
+                        analysis.confidence,
+                        "Likely Real",
+                        "Likely AI-generated",
+                        24
+                      )}
                     </td>
                   </tr>
                 </tfoot>
