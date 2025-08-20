@@ -117,55 +117,90 @@ function App() {
               style={{
                 borderCollapse: "collapse",
                 width: "100%",
-                maxWidth: "500px",
+                maxWidth: "648px",
               }}
             >
               <thead>
                 <tr>
                   <th
                     style={{
+                      padding: "8px 12px",
                       borderBottom: "1px solid #ccc",
                       textAlign: "left",
                     }}
                   >
                     Model
                   </th>
-                  <th style={{ borderBottom: "1px solid #ccc" }}>Confidence</th>
-                  <th style={{ borderBottom: "1px solid #ccc" }}>Verdict</th>
+                  <th
+                    style={{
+                      padding: "8px 12px",
+                      borderBottom: "1px solid #ccc",
+                    }}
+                  >
+                    Real Confidence
+                  </th>
+                  <th
+                    style={{
+                      padding: "8px 12px",
+                      borderBottom: "1px solid #ccc",
+                    }}
+                  >
+                    Verdict
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
-                {results.map((r, idx) => (
+                {results.map((result, idx) => (
                   <tr key={idx}>
-                    <td style={{ padding: "4px 8px" }}>{r.model}</td>
-                    <td style={{ padding: "4px 8px", textAlign: "center" }}>
-                      {r.confidence}%
+                    <td style={{ padding: "8px 12px", textAlign: "left" }}>
+                      <code>{result.model}</code>
+                    </td>
+                    <td style={{ padding: "8px 12px", textAlign: "center" }}>
+                      {result.confidence}%
                     </td>
                     <td
                       style={{
-                        padding: "4px 8px",
+                        padding: "8px 12px",
                         textAlign: "center",
                         color: confidenceToString(
-                          r.confidence,
+                          result.confidence,
                           "var(--success-text, green)",
                           "var(--error-text, red)"
                         ),
                       }}
                     >
-                      {confidenceToString(r.confidence)}
+                      {confidenceToString(result.confidence)}
                     </td>
                   </tr>
                 ))}
               </tbody>
+              {analysis && (
+                <tfoot style={{ borderTop: "1px solid #ccc" }}>
+                  <tr>
+                    <td style={{ padding: "8px 12px", textAlign: "left" }}>
+                      Final Analysis
+                    </td>
+                    <td style={{ padding: "8px 12px", textAlign: "center" }}>
+                      {analysis.confidence}%
+                    </td>
+                    <td
+                      style={{
+                        padding: "8px 12px",
+                        textAlign: "center",
+                        color: confidenceToString(
+                          analysis.confidence,
+                          "var(--success-text, green)",
+                          "var(--error-text, red)"
+                        ),
+                      }}
+                    >
+                      {confidenceToString(analysis.confidence)}
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
-
-            {analysis && (
-              <h3 style={{ marginTop: "1rem" }}>
-                Final Analysis: {confidenceToString(analysis.confidence)} (
-                {analysis.confidence}%)
-              </h3>
-            )}
           </div>
         )}
       </div>
