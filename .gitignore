@@ -1,5 +1,21 @@
 __pycache__/
+.DS_Store
+.idea
+.vscode/*
+*.local
 *.log
+*.njsproj
+*.ntvs*
 *.pyc
-random_images/
+*.sln
+*.suo
+*.sw?
+dist
+dist-ssr
+lerna-debug.log*
+logs
+node_modules
 venv/
+
+# Allow this
+!.vscode/extensions.json
