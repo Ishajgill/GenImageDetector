@@ -1,20 +1,33 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
+const REAL_CONFIDENCE_THRESHOLD = 55;
+
 interface Result {
   model: string;
   confidence: number;
-  verdict: string;
 }
+
+const confidenceToString = (
+  confidence: number,
+  highString = "Likely Real",
+  lowString = "Likely AI-generated",
+  threshold = REAL_CONFIDENCE_THRESHOLD
+) => (confidence > threshold ? highString : lowString);
 
 function App() {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Result[] | null>(null);
+  const [analysis, setAnalysis] = useState<Result | null>(null);
 
   useEffect(() => {
     if (!image) return;
+
+    // reset results & analysis
+    setResults(null);
+    setAnalysis(null);
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -25,38 +38,48 @@ function App() {
     reader.readAsDataURL(image);
   }, [image]);
 
-  const analyzeImage = () => {
+  const analyzeImage = async () => {
     if (!image) return;
 
     setLoading(true);
     setResults(null);
 
-    // Simulate backend processing
-    setTimeout(() => {
-      setLoading(false);
+    const formData = new FormData();
+    formData.append("file", image);
 
-      setResults([
-        { model: "Swin Transformer V2", confidence: 78, verdict: "Likely AI" },
-        { model: "EfficientNet-B7", confidence: 65, verdict: "Uncertain" },
-        { model: "CLIP ViT-L/14", confidence: 84, verdict: "Likely AI" },
-      ]);
-    }, 2000);
+    try {
+      const res = await fetch("http://localhost:8000/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      setResults(data.results);
+      setAnalysis(data.analysis);
+    } catch (err) {
+      console.error("Upload failed:", err);
+      alert("Error analyzing image");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <h1>GenImageDetector</h1>
+
       <div
         className="card"
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "1rem", // space between items
+          gap: "1rem",
         }}
       >
         <input
           type="file"
-          accept="image/*"
+          accept="image/png, image/jpeg"
           onChange={(e) => {
             if (e.target.files) {
               setImage(e.target.files[0]);
@@ -88,62 +111,102 @@ function App() {
 
         {results && (
           <div style={{ marginTop: "1rem" }}>
-            <h3>Analysis Results</h3>
+            <h2>Results</h2>
+
             <table
               style={{
                 borderCollapse: "collapse",
                 width: "100%",
-                maxWidth: "500px",
+                maxWidth: "648px",
               }}
             >
               <thead>
                 <tr>
                   <th
                     style={{
+                      padding: "8px 12px",
                       borderBottom: "1px solid #ccc",
                       textAlign: "left",
                     }}
                   >
                     Model
                   </th>
-                  <th style={{ borderBottom: "1px solid #ccc" }}>Confidence</th>
-                  <th style={{ borderBottom: "1px solid #ccc" }}>Verdict</th>
+                  <th
+                    style={{
+                      padding: "8px 12px",
+                      borderBottom: "1px solid #ccc",
+                    }}
+                  >
+                    Real Confidence
+                  </th>
+                  <th
+                    style={{
+                      padding: "8px 12px",
+                      borderBottom: "1px solid #ccc",
+                    }}
+                  >
+                    Verdict
+                  </th>
                 </tr>
               </thead>
+
               <tbody>
-                {results.map((r, idx) => (
+                {results.map((result, idx) => (
                   <tr key={idx}>
-                    <td style={{ padding: "4px 8px" }}>{r.model}</td>
-                    <td style={{ padding: "4px 8px", textAlign: "center" }}>
-                      {r.confidence}%
+                    <td style={{ padding: "8px 12px", textAlign: "left" }}>
+                      <code>{result.model}</code>
+                    </td>
+                    <td style={{ padding: "8px 12px", textAlign: "center" }}>
+                      {result.confidence}%
                     </td>
                     <td
                       style={{
-                        padding: "4px 8px",
+                        padding: "8px 12px",
                         textAlign: "center",
-                        color:
-                          r.verdict === "Likely AI"
-                            ? "var(--error-text, red)"
-                            : r.verdict === "Likely Human"
-                            ? "var(--success-text, green)"
-                            : "var(--warning-text, yellow)",
+                        color: confidenceToString(
+                          result.confidence,
+                          "var(--success-text, green)",
+                          "var(--error-text, red)"
+                        ),
                       }}
                     >
-                      {r.verdict}
+                      {confidenceToString(result.confidence)}
                     </td>
                   </tr>
                 ))}
               </tbody>
+              {analysis && (
+                <tfoot style={{ borderTop: "1px solid #ccc" }}>
+                  <tr>
+                    <td style={{ padding: "8px 12px", textAlign: "left" }}>
+                      Final Analysis
+                    </td>
+                    <td style={{ padding: "8px 12px", textAlign: "center" }}>
+                      {analysis.confidence}%
+                    </td>
+                    <td
+                      style={{
+                        padding: "8px 12px",
+                        textAlign: "center",
+                        color: confidenceToString(
+                          analysis.confidence,
+                          "var(--success-text, green)",
+                          "var(--error-text, red)",
+                          24
+                        ),
+                      }}
+                    >
+                      {confidenceToString(
+                        analysis.confidence,
+                        "Likely Real",
+                        "Likely AI-generated",
+                        24
+                      )}
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
-            <div style={{ marginTop: "0.5rem", fontWeight: "bold" }}>
-              Final conclusion:{" "}
-              {Math.round(
-                results.reduce((sum, r) => sum + r.confidence, 0) /
-                  results.length
-              ) > 70
-                ? "Image is likely AI-generated"
-                : "Image origin is uncertain"}
-            </div>
           </div>
         )}
       </div>
