@@ -1,0 +1,13 @@
+----------------- Validation Results ---------------
+Model path: checkpoints/midjourney2/model_epoch_latest.pth
+Dataset: /nfs/turbo/umd-anglial/GenImageDetector/raw_dataset/midjourney/val
+Split: val
+Time: 2025-10-22 07:37:36
+
+Metrics:
+    Accuracy: 0.9864
+    Average Precision: 0.9992
+    Real Images Accuracy: 0.9828
+    Fake Images Accuracy: 0.9900
+    Average Loss: 0.0375
+-----------------  End  ---------------

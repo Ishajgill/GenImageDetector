@@ -1,0 +1,7 @@
+# Training Log for experiment: midjourney2
+# Started at: 2025-10-21 23:46:04
+# Format: [timestamp] epoch step || train_loss train_acc lr || val_loss val_acc val_ap real_acc fake_acc
+#====================================================================================================
+
+[2025-10-22 02:13:19] E000 S005058 || Loss: 0.0784 Acc: 0.9874 LR: 1.00e-04 || ValLoss: 0.0508 ValAcc: 0.9816 AP: 0.9984 (R: 0.9813 F: 0.9818)
+[2025-10-22 04:37:35] E001 S010116 || Loss: 0.0447 Acc: 0.9942 LR: 1.00e-04 || ValLoss: 0.0429 ValAcc: 0.9855 AP: 0.9987 (R: 0.9835 F: 0.9875)
