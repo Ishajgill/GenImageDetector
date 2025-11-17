@@ -77,7 +77,15 @@ export const Analyzer = () => {
         textAlign: "center",
       }}
     >
-      <h1>GenImageDetector</h1>
+      <h1
+        style={{
+          fontWeight: 300,
+          fontSize: "2rem",
+          marginBottom: "1.5rem",
+        }}
+      >
+        GenImageDetector
+      </h1>
 
       <div
         className="card"
