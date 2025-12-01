@@ -11,7 +11,8 @@ import { darkTheme, lightTheme } from "./theme";
 import "./App.css";
 import { Analyzer } from "./components/analyzer/Analyzer";
 import { Sidebar } from "./components/sidebar/Sidebar";
-import { AppProvider } from "./AppProvider";
+import { AuthProvider } from "./providers/AuthProvider";
+import { AppProvider } from "./providers/AppProvider";
 
 export const App = () => {
   const [darkMode, setDarkMode] = useState(true);
@@ -20,49 +21,53 @@ export const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppProvider>
-        <Box
-          sx={{
-            display: "flex",
-            height: "100vh",
-            width: "100vw",
-            overflow: "hidden",
-            bgcolor: "background.default",
-          }}
-        >
-          <Sidebar />
+      <AuthProvider>
+        <AppProvider>
           <Box
-            component="main"
             sx={{
-              flex: 1,
-              overflow: "auto",
               display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              position: "relative",
+              height: "100vh",
+              width: "100vw",
+              overflow: "hidden",
+              bgcolor: "background.default",
             }}
           >
-            {/* Theme toggle button */}
-            <Tooltip
-              title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            <Sidebar />
+            <Box
+              component="main"
+              sx={{
+                flex: 1,
+                overflow: "auto",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                position: "relative",
+              }}
             >
-              <IconButton
-                onClick={() => setDarkMode(!darkMode)}
-                sx={{
-                  position: "absolute",
-                  top: 16,
-                  right: 16,
-                  zIndex: 1,
-                }}
-                color="inherit"
+              {/* Theme toggle button */}
+              <Tooltip
+                title={
+                  darkMode ? "Switch to light mode" : "Switch to dark mode"
+                }
               >
-                {darkMode ? <Brightness7 /> : <Brightness4 />}
-              </IconButton>
-            </Tooltip>
-            <Analyzer />
+                <IconButton
+                  onClick={() => setDarkMode(!darkMode)}
+                  sx={{
+                    position: "absolute",
+                    top: 16,
+                    right: 16,
+                    zIndex: 1,
+                  }}
+                  color="inherit"
+                >
+                  {darkMode ? <Brightness7 /> : <Brightness4 />}
+                </IconButton>
+              </Tooltip>
+              <Analyzer />
+            </Box>
           </Box>
-        </Box>
-      </AppProvider>
+        </AppProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 };
