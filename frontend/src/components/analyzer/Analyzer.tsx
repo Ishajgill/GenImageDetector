@@ -48,6 +48,18 @@ export const Analyzer = () => {
   const authContext = useContext(AuthContext);
   const token = authContext?.token;
 
+  // Reset image and preview on logout
+  useEffect(() => {
+    const handleLogout = () => {
+      console.log("Analyzer: auth:logout event received, clearing image state");
+      setImage(null);
+      setPreview(undefined);
+    };
+
+    window.addEventListener("auth:logout", handleLogout);
+    return () => window.removeEventListener("auth:logout", handleLogout);
+  }, []);
+
   useEffect(() => {
     if (!image) return;
 
@@ -165,6 +177,9 @@ export const Analyzer = () => {
             gap: 2,
             flexWrap: "wrap",
             justifyContent: "center",
+            "&:last-child": {
+              pb: 2,
+            },
           }}
         >
           {!preview ? (
@@ -172,6 +187,7 @@ export const Analyzer = () => {
               component="label"
               variant="contained"
               sx={{ minWidth: 150 }}
+              size="large"
             >
               Choose Image
               <VisuallyHiddenInput
