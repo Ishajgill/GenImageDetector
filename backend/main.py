@@ -8,6 +8,7 @@ from PIL import Image
 from pydantic import BaseModel
 
 from classifiers.cnnspot import CNNSpotClassifier
+from classifiers.demo import DemoClassifier
 
 
 class Base64Image(BaseModel):
@@ -20,6 +21,10 @@ cnnspot_classifier = CNNSpotClassifier(
     crop_size=224,
     quiet=True  # Disable debug output in production
 )
+
+# Demo classifiers (for UI development)
+nebula_comb_v3_classifier = DemoClassifier(seed="nebula")
+open_x8100_classifier = DemoClassifier(seed="quasar")
 
 app = FastAPI()
 
@@ -41,7 +46,8 @@ async def analyze_image(request: Request, file: UploadFile = File(None)):
     - JSON with base64 image data (from batch scripts)
     """
     img = None
-    
+    filename = ""
+
     # Check if it's a JSON request with base64 image
     if file is None:
         try:
@@ -54,23 +60,23 @@ async def analyze_image(request: Request, file: UploadFile = File(None)):
                     img_data = img_data.split(",", 1)[1]
                 img_bytes = base64.b64decode(img_data)
                 img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+                filename = body.get("filename", "")
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Invalid JSON or base64 image: {e}")
     else:
         # Handle file upload
+        filename = file.filename or ""
         img_bytes = await file.read()
         try:
             img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Invalid image: {e}")
-    
+
     if img is None:
         raise HTTPException(status_code=400, detail="No image provided")
 
-    # Use CNNSpot for all predictions (trained on Midjourney dataset)
-    cnnspot_real_confidence = cnnspot_classifier.analyze(img)
-
     return {
-        "CNNSpot": cnnspot_real_confidence,
-        "gid-final": cnnspot_real_confidence,
+        "CNNSpot": cnnspot_classifier.analyze(img),
+        "Nebula_comb_v3": nebula_comb_v3_classifier.analyze(img, filename=filename),
+        "open-X8100": open_x8100_classifier.analyze(img, filename=filename),
     }

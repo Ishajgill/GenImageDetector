@@ -47,17 +47,39 @@ export const Analyzer = () => {
 
       const data = await res.json();
 
+      // Dynamically convert API response to results array
+      const results = Object.entries(data).map(([model, confidence]) => ({
+        model,
+        confidence: confidence as number,
+      }));
+
+      // Calculate aggregate analysis (weighted average, favoring higher confidence)
+      const confidences = results.map((r) => r.confidence);
+      const weights = confidences.map((c) => Math.abs(c - 50)); // Weight by distance from 50%
+      const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+      const weightedSum = confidences.reduce(
+        (sum, c, i) => sum + c * weights[i],
+        0
+      );
+      const aggregateConfidence =
+        totalWeight > 0 ? weightedSum / totalWeight : 50;
+
+      const analysis = {
+        model: "Aggregate",
+        confidence: Math.round(aggregateConfidence * 10) / 10, // Round to 1 decimal
+      };
+
       setCurrentResult({
         image: preview,
-        results: data.results,
-        analysis: data.analysis,
+        results: results,
+        analysis: analysis,
       });
       setHistory([
         ...history,
         {
           image: preview,
-          results: data.results,
-          analysis: data.analysis,
+          results: results,
+          analysis: analysis,
         },
       ]);
     } catch (err) {
@@ -184,11 +206,19 @@ export const Analyzer = () => {
                         color: confidenceToString(
                           result.confidence,
                           "var(--success-text, green)",
-                          "var(--error-text, red)"
+                          "var(--error-text, red)",
+                          undefined,
+                          result.model
                         ),
                       }}
                     >
-                      {confidenceToString(result.confidence)}
+                      {confidenceToString(
+                        result.confidence,
+                        undefined,
+                        undefined,
+                        undefined,
+                        result.model
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -211,7 +241,8 @@ export const Analyzer = () => {
                           currentResult.analysis.confidence,
                           "var(--success-text, green)",
                           "var(--error-text, red)",
-                          24
+                          undefined,
+                          currentResult.analysis.model
                         ),
                       }}
                     >
@@ -219,7 +250,8 @@ export const Analyzer = () => {
                         currentResult.analysis.confidence,
                         "Likely Real",
                         "Likely AI-generated",
-                        24
+                        undefined,
+                        currentResult.analysis.model
                       )}
                     </td>
                   </tr>
