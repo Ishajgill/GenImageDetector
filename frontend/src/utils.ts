@@ -2,7 +2,7 @@ const REAL_CONFIDENCE_THRESHOLD = 55;
 
 // Model-specific thresholds based on validation testing
 const MODEL_THRESHOLDS: Record<string, number> = {
-  CNNSpot: 50, // Trained on Midjourney dataset, well-calibrated at 50%
+  CNNSpot: 80, // Real images typically score 90-100%, fake images 0-50%
   "gid-final": 50, // Final result (same as CNNSpot for now)
 };
 

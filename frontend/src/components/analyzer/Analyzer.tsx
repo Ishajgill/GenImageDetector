@@ -1,6 +1,34 @@
 import { useContext, useEffect, useState } from "react";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  Paper,
+  styled,
+} from "@mui/material";
 import { AppContext, type AppContextType } from "../../AppContext";
 import { confidenceToString } from "../../utils";
+
+const VisuallyHiddenInput = styled("input")(() => ({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
+  height: 1,
+  overflow: "hidden",
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  whiteSpace: "nowrap",
+  width: 1,
+}));
 
 export const Analyzer = () => {
   const [image, setImage] = useState<File | null>(null);
@@ -91,190 +119,212 @@ export const Analyzer = () => {
   };
 
   return (
-    <div
-      style={{
-        margin: "0 auto",
-        padding: "20vh 2rem",
+    <Box
+      sx={{
+        maxWidth: "800px",
         width: "100%",
+        p: 4,
         textAlign: "center",
       }}
     >
-      <h1
-        style={{
+      <Typography
+        variant="h1"
+        sx={{
           fontWeight: 300,
-          fontSize: "2rem",
-          marginBottom: "1.5rem",
+          fontSize: "2.5rem",
+          mb: 4,
         }}
       >
         GenImageDetector
-      </h1>
+      </Typography>
 
-      <div
-        className="card"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "1rem",
-        }}
-      >
-        <input
-          type="file"
-          accept="image/png, image/jpeg"
-          onChange={(e) => {
-            if (e.target.files) {
-              setImage(e.target.files[0]);
-            }
+      <Card sx={{ mb: 3 }}>
+        <CardContent
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            flexWrap: "wrap",
+            justifyContent: "center",
           }}
-        />
-
-        {preview && (
-          <img
-            src={preview}
-            alt="Preview"
-            style={{
-              height: "150px",
-              objectFit: "cover",
-            }}
-          />
-        )}
-      </div>
-
-      {image && <button onClick={analyzeImage}>Analyze</button>}
-
-      <div style={{ marginTop: "1rem" }}>
-        {loading && (
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div className="spinner" />
-            <span>Analyzing image...</span>
-          </div>
-        )}
-
-        {currentResult && (
-          <div style={{ marginTop: "1rem" }}>
-            <h2>Results</h2>
-
-            <table
-              style={{
-                borderCollapse: "collapse",
-                width: "100%",
-                maxWidth: "648px",
+        >
+          <Button
+            component="label"
+            variant="contained"
+            sx={{ minWidth: 150 }}
+          >
+            Choose Image
+            <VisuallyHiddenInput
+              type="file"
+              accept="image/png, image/jpeg"
+              onChange={(e) => {
+                if (e.target.files) {
+                  setImage(e.target.files[0]);
+                }
               }}
-            >
-              <thead>
-                <tr>
-                  <th
-                    style={{
-                      padding: "8px 12px",
-                      borderBottom: "1px solid #ccc",
-                      textAlign: "left",
-                    }}
-                  >
-                    Model
-                  </th>
-                  <th
-                    style={{
-                      padding: "8px 12px",
-                      borderBottom: "1px solid #ccc",
-                    }}
-                  >
-                    Real Confidence
-                  </th>
-                  <th
-                    style={{
-                      padding: "8px 12px",
-                      borderBottom: "1px solid #ccc",
-                    }}
-                  >
-                    Verdict
-                  </th>
-                </tr>
-              </thead>
+            />
+          </Button>
 
-              <tbody>
+          {preview && (
+            <Box
+              component="img"
+              src={preview}
+              alt="Preview"
+              sx={{
+                height: 150,
+                maxWidth: "100%",
+                objectFit: "contain",
+                borderRadius: 2,
+              }}
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      {image && (
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={analyzeImage}
+          disabled={loading}
+          sx={{ mb: 3 }}
+        >
+          {loading ? "Analyzing..." : "Analyze Image"}
+        </Button>
+      )}
+
+      {loading && (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center", mt: 2 }}>
+          <CircularProgress size={24} />
+          <Typography>Analyzing image...</Typography>
+        </Box>
+      )}
+
+      {currentResult && (
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h2" sx={{ mb: 2 }}>
+            Results
+          </Typography>
+
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Model
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Real Confidence
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Verdict
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
                 {currentResult.results.map((result, idx) => (
-                  <tr key={idx}>
-                    <td style={{ padding: "8px 12px", textAlign: "left" }}>
-                      <code>{result.model}</code>
-                    </td>
-                    <td style={{ padding: "8px 12px", textAlign: "center" }}>
-                      {result.confidence}%
-                    </td>
-                    <td
-                      style={{
-                        padding: "8px 12px",
-                        textAlign: "center",
-                        color: confidenceToString(
+                  <TableRow key={idx} hover>
+                    <TableCell>
+                      <Typography
+                        component="code"
+                        sx={{
+                          fontFamily: "monospace",
+                          fontSize: "0.9rem",
+                          bgcolor: "action.hover",
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 1,
+                        }}
+                      >
+                        {result.model}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Typography fontWeight="medium">
+                        {result.confidence}%
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Typography
+                        sx={{
+                          color:
+                            confidenceToString(
+                              result.confidence,
+                              "success.main",
+                              "error.main",
+                              undefined,
+                              result.model
+                            ) || "text.primary",
+                          fontWeight: "medium",
+                        }}
+                      >
+                        {confidenceToString(
                           result.confidence,
-                          "var(--success-text, green)",
-                          "var(--error-text, red)",
+                          undefined,
+                          undefined,
                           undefined,
                           result.model
-                        ),
-                      }}
-                    >
-                      {confidenceToString(
-                        result.confidence,
-                        undefined,
-                        undefined,
-                        undefined,
-                        result.model
-                      )}
-                    </td>
-                  </tr>
+                        )}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
 
-              {currentResult.analysis && (
-                <tfoot style={{ borderTop: "1px solid #ccc" }}>
-                  <tr>
-                    <td style={{ padding: "8px 12px", textAlign: "left" }}>
-                      Final Analysis
-                    </td>
-                    <td style={{ padding: "8px 12px", textAlign: "center" }}>
-                      {currentResult.analysis.confidence}%
-                    </td>
-                    <td
-                      style={{
-                        padding: "8px 12px",
-                        textAlign: "center",
-                        color: confidenceToString(
+                {currentResult.analysis && (
+                  <TableRow
+                    sx={{
+                      bgcolor: "action.hover",
+                      "& td": { borderTop: 2, borderColor: "divider" },
+                    }}
+                  >
+                    <TableCell>
+                      <Typography fontWeight="bold">
+                        Final Analysis
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Typography fontWeight="bold">
+                        {currentResult.analysis.confidence}%
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Typography
+                        sx={{
+                          color:
+                            confidenceToString(
+                              currentResult.analysis.confidence,
+                              "success.main",
+                              "error.main",
+                              undefined,
+                              currentResult.analysis.model
+                            ) || "text.primary",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {confidenceToString(
                           currentResult.analysis.confidence,
-                          "var(--success-text, green)",
-                          "var(--error-text, red)",
+                          "Likely Real",
+                          "Likely AI-generated",
                           undefined,
                           currentResult.analysis.model
-                        ),
-                      }}
-                    >
-                      {confidenceToString(
-                        currentResult.analysis.confidence,
-                        "Likely Real",
-                        "Likely AI-generated",
-                        undefined,
-                        currentResult.analysis.model
-                      )}
-                    </td>
-                  </tr>
-                </tfoot>
-              )}
-            </table>
-          </div>
-        )}
-      </div>
-
-      <style>{`
-        .spinner {
-          width: 16px;
-          height: 16px;
-          border: 2px solid #ccc;
-          border-top-color: #333;
-          border-radius: 50%;
-          animation: spin 0.6s linear infinite;
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
+                        )}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
+    </Box>
   );
 };
