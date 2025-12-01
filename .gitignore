@@ -2,6 +2,7 @@ __pycache__/
 .DS_Store
 .idea
 .vscode/*
+*.db
 *.local
 *.log
 *.njsproj
@@ -11,8 +12,8 @@ __pycache__/
 *.suo
 *.sw?
 data/
-dist/
 dist-ssr/
+dist/
 lerna-debug.log*
 logs/
 node_modules/
