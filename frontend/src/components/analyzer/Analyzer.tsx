@@ -337,7 +337,7 @@ export const Analyzer = () => {
         setHistory([newHistoryItem, ...history]); // Add to beginning for consistency
       } else {
         // Small delay to ensure backend has saved the record, then refetch
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         await refreshHistory();
       }
     } catch (err) {
