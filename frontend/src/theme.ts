@@ -52,6 +52,14 @@ const commonTheme: ThemeOptions = {
       styleOverrides: {
         root: {
           backgroundImage: "none",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderColor: "rgba(0, 0, 0, 0.10)",
         },
       },
     },

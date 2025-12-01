@@ -1,5 +1,11 @@
 import { useState, useMemo } from "react";
-import { ThemeProvider, CssBaseline, Box, IconButton } from "@mui/material";
+import {
+  ThemeProvider,
+  CssBaseline,
+  Box,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 import { Brightness4, Brightness7 } from "@mui/icons-material";
 import { darkTheme, lightTheme } from "./theme";
 import "./App.css";
@@ -37,18 +43,22 @@ export const App = () => {
             }}
           >
             {/* Theme toggle button */}
-            <IconButton
-              onClick={() => setDarkMode(!darkMode)}
-              sx={{
-                position: "absolute",
-                top: 16,
-                right: 16,
-                zIndex: 1,
-              }}
-              color="inherit"
+            <Tooltip
+              title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
             >
-              {darkMode ? <Brightness7 /> : <Brightness4 />}
-            </IconButton>
+              <IconButton
+                onClick={() => setDarkMode(!darkMode)}
+                sx={{
+                  position: "absolute",
+                  top: 16,
+                  right: 16,
+                  zIndex: 1,
+                }}
+                color="inherit"
+              >
+                {darkMode ? <Brightness7 /> : <Brightness4 />}
+              </IconButton>
+            </Tooltip>
             <Analyzer />
           </Box>
         </Box>

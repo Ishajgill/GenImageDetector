@@ -65,7 +65,7 @@ export const Sidebar = () => {
               />
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography variant="caption" color="text.secondary" noWrap>
-                  Image {history.length - idx}
+                  {item.filename || `Image ${history.length - idx}`}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -76,7 +76,8 @@ export const Sidebar = () => {
                         item.analysis.confidence,
                         "success.main",
                         "error.main",
-                        24
+                        undefined,
+                        item.analysis.model
                       ) || "text.primary",
                   }}
                 >
@@ -84,7 +85,8 @@ export const Sidebar = () => {
                     item.analysis.confidence,
                     "Real",
                     "Fake",
-                    24
+                    undefined,
+                    item.analysis.model
                   )}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
