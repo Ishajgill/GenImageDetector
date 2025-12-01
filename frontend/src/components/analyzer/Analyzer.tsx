@@ -14,7 +14,11 @@ import {
   Typography,
   Paper,
   styled,
+  LinearProgress,
+  Chip,
+  Skeleton,
 } from "@mui/material";
+import { CheckCircle, Warning } from "@mui/icons-material";
 import { AppContext, type AppContextType } from "../../contexts/AppContext";
 import { AuthContext } from "../../contexts/AuthContext";
 import { confidenceToString } from "../../utils";
@@ -31,10 +35,116 @@ const VisuallyHiddenInput = styled("input")(() => ({
   width: 1,
 }));
 
+// Confidence bar component
+const ConfidenceBar = ({ confidence }: { confidence: number }) => {
+  const isReal = confidence >= 50;
+
+  return (
+    <Box sx={{ width: "100%", maxWidth: 200, mx: "auto" }}>
+      <LinearProgress
+        variant="determinate"
+        value={confidence}
+        sx={{
+          height: 8,
+          borderRadius: 4,
+          bgcolor: "action.hover",
+          "& .MuiLinearProgress-bar": {
+            bgcolor: isReal ? "success.main" : "error.main",
+            transition: "transform 1s ease-in-out",
+          },
+        }}
+      />
+    </Box>
+  );
+};
+
+// Animated gauge for final verdict
+const ConfidenceGauge = ({ confidence }: { confidence: number }) => {
+  const [animatedValue, setAnimatedValue] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimatedValue(confidence);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [confidence]);
+
+  const isReal = confidence >= 50;
+  const rotation = (animatedValue / 100) * 180 - 90; // -90 to 90 degrees
+
+  return (
+    <Box
+      sx={{
+        width: 120,
+        height: 60,
+        mx: "auto",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <Box
+        sx={{
+          position: "relative",
+          width: 120,
+          height: 60,
+          mx: "auto",
+          mb: 1,
+        }}
+      >
+        {/* Background arc */}
+        <Box
+          sx={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            borderRadius: "120px 120px 0 0",
+            border: "8px solid",
+            borderColor: "action.hover",
+            borderBottom: "none",
+          }}
+        />
+        {/* Colored arc */}
+        <Box
+          sx={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            borderRadius: "120px 120px 0 0",
+            border: "8px solid",
+            borderColor: isReal ? "success.main" : "error.main",
+            borderBottom: "none",
+            clipPath: `polygon(0 100%, 50% 100%, 50% 0, ${
+              animatedValue < 50 ? "0" : "100%"
+            } 0, ${animatedValue < 50 ? "0" : "100%"} 100%)`,
+            transform: `rotate(${Math.min(rotation, 0)}deg)`,
+            transformOrigin: "bottom center",
+            transition: "transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        />
+        {/* Percentage text */}
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          sx={{
+            position: "absolute",
+            bottom: -5,
+            left: "50%",
+            transform: "translateX(-50%)",
+          }}
+        >
+          {Math.round(animatedValue)}%
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
 export const Analyzer = () => {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState("");
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   const context = useContext(AppContext);
   const {
@@ -83,22 +193,41 @@ export const Analyzer = () => {
     if (!image) return;
 
     setLoading(true);
+    setLoadingProgress(0);
     setCurrentResult(null);
 
     const formData = new FormData();
     formData.append("file", image);
 
+    // Helper to add random delay
+    const randomDelay = (min: number, max: number) =>
+      new Promise((resolve) =>
+        setTimeout(resolve, Math.random() * (max - min) + min)
+      );
+
     try {
+      setLoadingStage("Uploading image...");
+      setLoadingProgress(20);
+      await randomDelay(400, 800);
+
       const headers: HeadersInit = {};
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
+
+      setLoadingStage("Running AI detection models...");
+      setLoadingProgress(40);
+      await randomDelay(300, 600);
 
       const res = await fetch("http://localhost:8000/analyze", {
         method: "POST",
         headers,
         body: formData,
       });
+
+      setLoadingStage("Processing results...");
+      setLoadingProgress(80);
+      await randomDelay(500, 900);
 
       const data = await res.json();
 
@@ -131,7 +260,19 @@ export const Analyzer = () => {
         analysis: analysis,
       };
 
+      setLoadingStage("Complete!");
+      setLoadingProgress(100);
+
+      // Small delay before showing results to smooth the transition
+      await randomDelay(300, 500);
+
+      // Set currentResult FIRST, then clear loading to prevent container disappearing
       setCurrentResult(newHistoryItem);
+
+      // Clear loading state immediately after
+      setLoading(false);
+      setLoadingStage("");
+      setLoadingProgress(0);
 
       // Only add to history for anonymous users
       // For logged-in users, the backend saves it and we'll refetch
@@ -144,8 +285,9 @@ export const Analyzer = () => {
     } catch (err) {
       console.error("Upload failed:", err);
       alert("Error analyzing image");
-    } finally {
       setLoading(false);
+      setLoadingStage("");
+      setLoadingProgress(0);
     }
   };
 
@@ -230,165 +372,215 @@ export const Analyzer = () => {
       )}
 
       {loading && (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            justifyContent: "center",
-            mt: 2,
-          }}
-        >
-          <CircularProgress size={24} />
-          <Typography>Analyzing image...</Typography>
-        </Box>
-      )}
-
-      {currentResult && (
-        <Box sx={{ mb: 3, textAlign: "center" }}>
-          <Button
-            component="label"
-            variant="outlined"
-            size="small"
-            sx={{ textTransform: "none" }}
+        <Box sx={{ width: "100%", maxWidth: 600, mx: "auto" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+              mb: 3,
+            }}
           >
-            Analyze New Image
-            <VisuallyHiddenInput
-              type="file"
-              accept="image/png, image/jpeg"
-              onChange={(e) => {
-                if (e.target.files) {
-                  setImage(e.target.files[0]);
-                }
-              }}
-            />
-          </Button>
+            <CircularProgress size={40} />
+            <Typography variant="body1" fontWeight="medium">
+              {loadingStage}
+            </Typography>
+            <Box sx={{ width: "100%", mt: 1 }}>
+              <LinearProgress
+                variant="determinate"
+                value={loadingProgress}
+                sx={{ height: 8, borderRadius: 4 }}
+              />
+            </Box>
+          </Box>
         </Box>
       )}
 
-      {currentResult && (
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h5" sx={{ mb: 0.5 }}>
-            Results
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {image?.name}
-          </Typography>
+      {(loading || currentResult) && (
+        <Box sx={{ width: "100%", maxWidth: 800, mx: "auto", minHeight: 400 }}>
+          {currentResult && (
+            <Box sx={{ mb: 3, textAlign: "center" }}>
+              <Button
+                component="label"
+                variant="outlined"
+                size="small"
+                sx={{ textTransform: "none" }}
+              >
+                Analyze New Image
+                <VisuallyHiddenInput
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setImage(e.target.files[0]);
+                    }
+                  }}
+                />
+              </Button>
+            </Box>
+          )}
 
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      Model
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      Real Confidence
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      Verdict
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
+          {loading ? (
+            // Skeleton loading for results table
+            <Paper sx={{ p: 2 }}>
+              {[1, 2, 3, 4].map((i) => (
+                <Box key={i} sx={{ mb: 2 }}>
+                  <Skeleton
+                    variant="rectangular"
+                    height={40}
+                    sx={{ borderRadius: 1 }}
+                  />
+                </Box>
+              ))}
+              <Skeleton
+                variant="rectangular"
+                height={54}
+                sx={{ borderRadius: 1, mt: 2 }}
+              />
+            </Paper>
+          ) : (
+            currentResult && (
+              <Box>
+                <Typography variant="h5" sx={{ mb: 0.5 }}>
+                  Results
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  {image?.name}
+                </Typography>
 
-              <TableBody>
-                {currentResult.results.map((result, idx) => (
-                  <TableRow key={idx} hover>
-                    <TableCell>
-                      <Typography
-                        component="code"
-                        sx={{
-                          fontFamily: "monospace",
-                          fontSize: "0.9rem",
-                          bgcolor: "action.hover",
-                          px: 1,
-                          py: 0.5,
-                          borderRadius: 1,
-                        }}
-                      >
-                        {result.model}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Typography fontWeight="medium">
-                        {result.confidence}%
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Typography
-                        sx={{
-                          color:
-                            confidenceToString(
-                              result.confidence,
-                              "success.main",
-                              "error.main",
-                              undefined,
-                              result.model
-                            ) || "text.primary",
-                          fontWeight: "medium",
-                        }}
-                      >
-                        {confidenceToString(
-                          result.confidence,
-                          undefined,
-                          undefined,
-                          undefined,
-                          result.model
-                        )}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            Model
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            Real Confidence
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            Verdict
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
 
-                {currentResult.analysis && (
-                  <TableRow
-                    sx={{
-                      bgcolor: "action.hover",
-                      "& td": { borderTop: 2, borderColor: "divider" },
-                    }}
-                  >
-                    <TableCell>
-                      <Typography fontWeight="bold">Final Analysis</Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Typography fontWeight="bold">
-                        {currentResult.analysis.confidence}%
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Typography
-                        sx={{
-                          color:
-                            confidenceToString(
-                              currentResult.analysis.confidence,
-                              "success.main",
-                              "error.main",
-                              undefined,
-                              currentResult.analysis.model
-                            ) || "text.primary",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {confidenceToString(
-                          currentResult.analysis.confidence,
-                          "Likely Real",
-                          "Likely AI-generated",
-                          undefined,
-                          currentResult.analysis.model
-                        )}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                    <TableBody>
+                      {currentResult.results.map((result, idx) => (
+                        <TableRow key={idx} hover>
+                          <TableCell>
+                            <Typography
+                              component="code"
+                              sx={{
+                                fontFamily: "monospace",
+                                fontSize: "0.9rem",
+                                bgcolor: "action.hover",
+                                px: 1,
+                                py: 0.5,
+                                borderRadius: 1,
+                              }}
+                            >
+                              {result.model}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 2,
+                              }}
+                            >
+                              <Typography
+                                fontWeight="medium"
+                                sx={{ minWidth: 45 }}
+                              >
+                                {result.confidence}%
+                              </Typography>
+                              <ConfidenceBar confidence={result.confidence} />
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center">
+                            <Chip
+                              label={confidenceToString(
+                                result.confidence,
+                                undefined,
+                                undefined,
+                                undefined,
+                                result.model
+                              )}
+                              color={
+                                result.confidence >= 50 ? "success" : "error"
+                              }
+                              variant="outlined"
+                              size="small"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+
+                      {currentResult.analysis && (
+                        <TableRow
+                          sx={{
+                            bgcolor: "action.hover",
+                            "& td": { borderTop: 2, borderColor: "divider" },
+                          }}
+                        >
+                          <TableCell>
+                            <Typography fontWeight="bold">
+                              Final Analysis
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ py: 1 }}>
+                              <ConfidenceGauge
+                                confidence={currentResult.analysis.confidence}
+                              />
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center" sx={{ width: 180 }}>
+                            <Chip
+                              icon={
+                                currentResult.analysis.confidence >= 50 ? (
+                                  <CheckCircle />
+                                ) : (
+                                  <Warning />
+                                )
+                              }
+                              label={confidenceToString(
+                                currentResult.analysis.confidence,
+                                "Likely Real",
+                                "Likely AI-generated",
+                                undefined,
+                                currentResult.analysis.model
+                              )}
+                              color={
+                                currentResult.analysis.confidence >= 50
+                                  ? "success"
+                                  : "error"
+                              }
+                              size="medium"
+                              sx={{ fontWeight: "bold", px: 1 }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )
+          )}
         </Box>
       )}
     </Box>
