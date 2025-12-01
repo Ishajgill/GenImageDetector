@@ -6,6 +6,7 @@ from analysis.routes import router as analysis_router
 
 app = FastAPI(
         title="GenImageDetector API",
+        summary="AI-generated image detection and analysis service.",
         version="0.1.0"
     )
 

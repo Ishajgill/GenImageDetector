@@ -16,7 +16,7 @@ from ml.classifiers.base import AIvsHumanClassifier, NYUADClassifier
 from ml.classifiers.cnnspot import CNNSpotClassifier
 from ml.classifiers.demo import DemoClassifier
 
-router = APIRouter(tags=["analysis"])
+router = APIRouter(tags=["Analysis"])
 
 # Initialize classifiers
 cnnspot_classifier = CNNSpotClassifier(

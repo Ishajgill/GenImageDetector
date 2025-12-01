@@ -55,3 +55,7 @@ The following test users are available after loading fixtures:
 You can use these credentials to test authentication and analysis history features.
 
 ---
+
+## API Documentation
+
+- **API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs) (when server is running)
