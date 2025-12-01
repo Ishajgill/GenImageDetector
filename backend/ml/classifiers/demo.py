@@ -3,11 +3,11 @@ Placeholder classifier for UI development and demonstration purposes.
 
 This classifier is a temporary stand-in to demonstrate the intended multi-model
 ensemble functionality while additional models are being integrated. It uses
-filename/path patterns to simulate the expected behavior of a second classifier
-that would provide complementary analysis alongside CNNSpot.
+filename/path patterns to simulate the expected behavior of a well-trained
+classifier.
 
 This will be replaced with actual trained models (e.g., HuggingFace transformers,
-additional CNN architectures) once they are validated and integrated into the system.
+additional GenImage architectures) once they are validated and integrated into the system.
 """
 import re
 import random

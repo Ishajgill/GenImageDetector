@@ -15,7 +15,7 @@ class ModelResultSchema(BaseModel):
 
 class AnalysisResponse(BaseModel):
     """Schema for analysis response."""
-    id: int
+    id: str
     filename: str
     image_data: str
     aggregate_confidence: float
@@ -44,3 +44,9 @@ class HistoryMigrationResponse(BaseModel):
     migrated_count: int
     failed_count: int
     message: str
+
+
+class AnalyzeResultResponse(BaseModel):
+    """Schema for immediate analysis result with ID."""
+    analysis_id: str | None = None
+    results: dict[str, float]

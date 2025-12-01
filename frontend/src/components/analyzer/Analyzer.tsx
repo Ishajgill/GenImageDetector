@@ -35,9 +35,30 @@ const VisuallyHiddenInput = styled("input")(() => ({
   width: 1,
 }));
 
+// Model-specific thresholds
+const MODEL_THRESHOLDS: Record<string, number> = {
+  CNNSpot: 80,
+  "gid-final": 50,
+};
+
+const REAL_CONFIDENCE_THRESHOLD = 55;
+
+const getThreshold = (modelName?: string) => {
+  return modelName
+    ? MODEL_THRESHOLDS[modelName] ?? REAL_CONFIDENCE_THRESHOLD
+    : REAL_CONFIDENCE_THRESHOLD;
+};
+
 // Confidence bar component
-const ConfidenceBar = ({ confidence }: { confidence: number }) => {
-  const isReal = confidence >= 50;
+const ConfidenceBar = ({
+  confidence,
+  modelName,
+}: {
+  confidence: number;
+  modelName?: string;
+}) => {
+  const threshold = getThreshold(modelName);
+  const isReal = confidence > threshold;
 
   return (
     <Box sx={{ width: "100%", maxWidth: 200, mx: "auto" }}>
@@ -189,6 +210,33 @@ export const Analyzer = () => {
     setPreview(currentResult?.image);
   }, [currentResult]);
 
+  const reanalyzeImage = async () => {
+    if (!currentResult?.image) return;
+
+    // Create a File object from the base64 data
+    const dataUrl = currentResult.image;
+    const arr = dataUrl.split(",");
+    const mime = arr[0].match(/:(.*?);/)?.[1] || "image/png";
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    const blob = new Blob([u8arr], { type: mime });
+    const file = new File(
+      [blob],
+      currentResult.filename || "reanalyzed-image.png",
+      { type: mime }
+    );
+
+    // Set the image and let analyzeImage handle it
+    setImage(file);
+
+    // Small delay to ensure state updates, then analyze
+    setTimeout(() => analyzeImage(), 50);
+  };
+
   const analyzeImage = async () => {
     if (!image) return;
 
@@ -230,9 +278,11 @@ export const Analyzer = () => {
       await randomDelay(500, 900);
 
       const data = await res.json();
+      const analysisId = data.analysis_id;
+      const apiResults = data.results;
 
       // Dynamically convert API response to results array
-      const results = Object.entries(data).map(([model, confidence]) => ({
+      const results = Object.entries(apiResults).map(([model, confidence]) => ({
         model,
         confidence: confidence as number,
       }));
@@ -254,10 +304,12 @@ export const Analyzer = () => {
       };
 
       const newHistoryItem = {
+        id: analysisId || undefined,
         image: preview,
         filename: image.name,
         results: results,
         analysis: analysis,
+        timestamp: new Date().toISOString(),
       };
 
       setLoadingStage("Complete!");
@@ -269,6 +321,11 @@ export const Analyzer = () => {
       // Set currentResult FIRST, then clear loading to prevent container disappearing
       setCurrentResult(newHistoryItem);
 
+      // Update URL with analysis ID if available
+      if (analysisId) {
+        window.history.pushState({}, "", `/analysis/${analysisId}`);
+      }
+
       // Clear loading state immediately after
       setLoading(false);
       setLoadingStage("");
@@ -277,9 +334,10 @@ export const Analyzer = () => {
       // Only add to history for anonymous users
       // For logged-in users, the backend saves it and we'll refetch
       if (!token) {
-        setHistory([...history, newHistoryItem]);
+        setHistory([newHistoryItem, ...history]); // Add to beginning for consistency
       } else {
-        // Refetch history from backend to get the newly saved item
+        // Small delay to ensure backend has saved the record, then refetch
+        await new Promise(resolve => setTimeout(resolve, 100));
         await refreshHistory();
       }
     } catch (err) {
@@ -400,14 +458,30 @@ export const Analyzer = () => {
       {(loading || currentResult) && (
         <Box sx={{ width: "100%", maxWidth: 800, mx: "auto", minHeight: 400 }}>
           {currentResult && (
-            <Box sx={{ mb: 3, textAlign: "center" }}>
+            <Box
+              sx={{
+                mb: 3,
+                textAlign: "center",
+                display: "flex",
+                gap: 2,
+                justifyContent: "center",
+              }}
+            >
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={reanalyzeImage}
+                disabled={loading}
+              >
+                Reanalyze
+              </Button>
               <Button
                 component="label"
                 variant="outlined"
                 size="small"
                 sx={{ textTransform: "none" }}
               >
-                Analyze New Image
+                New Image
                 <VisuallyHiddenInput
                   type="file"
                   accept="image/png, image/jpeg"
@@ -442,16 +516,37 @@ export const Analyzer = () => {
           ) : (
             currentResult && (
               <Box>
-                <Typography variant="h5" sx={{ mb: 0.5 }}>
+                <Typography variant="h5" sx={{ mb: 2 }}>
                   Results
                 </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 3,
+                    mb: 2,
+                    justifyContent: "center",
+                    flexWrap: "wrap",
+                  }}
                 >
-                  {image?.name}
-                </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>File:</strong>{" "}
+                    {currentResult.filename || image?.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Time:</strong>{" "}
+                    {(() => {
+                      const date = new Date(currentResult.timestamp);
+                      const today = new Date();
+                      const isToday =
+                        date.getDate() === today.getDate() &&
+                        date.getMonth() === today.getMonth() &&
+                        date.getFullYear() === today.getFullYear();
+                      return isToday
+                        ? date.toLocaleTimeString()
+                        : date.toLocaleString();
+                    })()}
+                  </Typography>
+                </Box>
 
                 <TableContainer component={Paper}>
                   <Table>
@@ -507,7 +602,10 @@ export const Analyzer = () => {
                               >
                                 {result.confidence}%
                               </Typography>
-                              <ConfidenceBar confidence={result.confidence} />
+                              <ConfidenceBar
+                                confidence={result.confidence}
+                                modelName={result.model}
+                              />
                             </Box>
                           </TableCell>
                           <TableCell align="center">
@@ -520,7 +618,9 @@ export const Analyzer = () => {
                                 result.model
                               )}
                               color={
-                                result.confidence >= 50 ? "success" : "error"
+                                result.confidence > getThreshold(result.model)
+                                  ? "success"
+                                  : "error"
                               }
                               variant="outlined"
                               size="small"

@@ -7,10 +7,12 @@ export interface Result {
 }
 
 export interface HistoryItem {
+  id?: string;
   image: string | undefined;
   filename?: string;
   results: Result[];
   analysis: Result;
+  timestamp: string;
 }
 
 export interface AppContextType {

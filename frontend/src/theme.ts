@@ -117,7 +117,7 @@ export const darkTheme = createTheme({
     },
     text: {
       primary: "#f1f5f9", // Slate 100
-      secondary: "#cbd5e1", // Slate 300
+      secondary: "#94a3b8", // Slate 400
     },
     divider: "#334155", // Slate 700
   },
@@ -160,7 +160,7 @@ export const lightTheme = createTheme({
     },
     text: {
       primary: "#0f172a", // Slate 900
-      secondary: "#475569", // Slate 600
+      secondary: "#64748b", // Slate 500
     },
     divider: "#e2e8f0", // Slate 200
   },

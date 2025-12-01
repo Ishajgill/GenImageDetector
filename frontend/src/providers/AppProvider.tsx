@@ -69,6 +69,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         const data = await res.json();
         // Transform backend format to frontend format
         const transformedHistory: HistoryItem[] = data.map((item: any) => ({
+          id: item.id,
           image: item.image_data,
           filename: item.filename,
           results: item.model_results.map((mr: any) => ({
@@ -79,6 +80,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
             model: "Aggregate",
             confidence: item.aggregate_confidence,
           },
+          timestamp: item.created_at,
         }));
         setHistory(transformedHistory);
       }
