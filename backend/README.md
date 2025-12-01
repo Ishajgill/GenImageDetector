@@ -31,6 +31,27 @@ conda activate gid
 # Install dependencies
 pip install -r requirements.txt
 
+# Initialize the database
+python -m db.init_db
+
+# Load default test users
+python -m db.load_fixtures
+
 # Run the development server
 uvicorn main:app --reload
 ```
+
+---
+
+## Default Test Users
+
+The following test users are available after loading fixtures:
+
+| Username | Password  |
+|----------|-----------|
+| user123  | user123   |
+| ryan     | test1234  |
+
+You can use these credentials to test authentication and analysis history features.
+
+---
