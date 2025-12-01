@@ -47,10 +47,10 @@ uvicorn main:app --reload
 
 The following test users are available after loading fixtures:
 
-| Username | Password  |
-|----------|-----------|
-| user123  | user123   |
-| ryan     | test1234  |
+| Username | Password |
+| -------- | -------- |
+| user123  | user123  |
+| ryan     | test1234 |
 
 You can use these credentials to test authentication and analysis history features.
 
