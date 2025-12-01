@@ -87,11 +87,9 @@ class DemoClassifier:
 
         # Generate plausible-looking score based on hints
         if is_likely_real and not is_likely_fake:
-            # Boost real images: 85-98%
-            return round(rng.uniform(85.0, 98.0), 1)
+            return round(rng.uniform(88.0, 97.0), 1)
         elif is_likely_fake and not is_likely_real:
-            # Lower fake images: 12-35%
-            return round(rng.uniform(12.0, 35.0), 1)
+            return round(rng.uniform(5.0, 25.0), 1)
         else:
             # Ambiguous: return neutral-ish score (between fake and real ranges)
-            return round(rng.uniform(36.0, 84.0), 1)
+            return round(rng.uniform(26.0, 87.0), 1)
