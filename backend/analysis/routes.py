@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from db.database import get_db
 from analysis.models import Analysis, ModelResult
-from analysis.schemas import AnalysisResponse
+from analysis.schemas import AnalysisResponse, HistoryMigrationRequest, HistoryMigrationResponse
 from auth.models import User
 from auth.routes import get_current_user
 from ml.classifiers.cnnspot import CNNSpotClassifier
@@ -126,3 +126,53 @@ async def get_history(current_user: Optional[User] = Depends(get_current_user), 
 
     analyses = db.query(Analysis).filter(Analysis.user_id == current_user.id).order_by(Analysis.created_at.desc()).all()
     return analyses
+
+
+@router.post("/migrate-history", response_model=HistoryMigrationResponse)
+async def migrate_history(
+    request: HistoryMigrationRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Migrate anonymous user history to authenticated user account.
+    Accepts a batch of analyses with existing results and saves them.
+    """
+    migrated_count = 0
+    failed_count = 0
+
+    for item in request.items:
+        try:
+            # Save analysis to database
+            analysis = Analysis(
+                user_id=current_user.id,
+                filename=item.filename or "migrated-image",
+                image_data=item.image,
+                aggregate_confidence=item.aggregate_confidence
+            )
+            db.add(analysis)
+            db.commit()
+            db.refresh(analysis)
+
+            # Add model results
+            for result in item.model_results:
+                model_result = ModelResult(
+                    analysis_id=analysis.id,
+                    model_name=result.model_name,
+                    confidence=result.confidence
+                )
+                db.add(model_result)
+            db.commit()
+
+            migrated_count += 1
+
+        except Exception as e:
+            failed_count += 1
+            print(f"Failed to migrate item {item.filename}: {e}")
+            continue
+
+    return HistoryMigrationResponse(
+        migrated_count=migrated_count,
+        failed_count=failed_count,
+        message=f"Successfully migrated {migrated_count} items, {failed_count} failed"
+    )

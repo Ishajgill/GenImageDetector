@@ -13,6 +13,7 @@ export interface AuthContextType {
   signup: (username: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  migrateAnonymousHistory: (authToken: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(

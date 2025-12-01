@@ -24,3 +24,23 @@ class AnalysisResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class HistoryMigrationItem(BaseModel):
+    """Schema for a single history item to migrate from anonymous to authenticated user."""
+    image: str  # base64 data URL
+    filename: str
+    aggregate_confidence: float
+    model_results: List[ModelResultSchema]
+
+
+class HistoryMigrationRequest(BaseModel):
+    """Schema for batch history migration request."""
+    items: List[HistoryMigrationItem]
+
+
+class HistoryMigrationResponse(BaseModel):
+    """Schema for history migration response."""
+    migrated_count: int
+    failed_count: int
+    message: str

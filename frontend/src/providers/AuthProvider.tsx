@@ -69,6 +69,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem("auth_token", authToken);
     setToken(authToken);
 
+    // Migrate any anonymous history before fetching user data
+    await migrateAnonymousHistory(authToken);
+
     // Fetch user data
     await fetchCurrentUser(authToken);
   };
@@ -93,8 +96,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem("auth_token", authToken);
     setToken(authToken);
 
+    // Migrate any anonymous history before fetching user data
+    await migrateAnonymousHistory(authToken);
+
     // Fetch user data
     await fetchCurrentUser(authToken);
+  };
+
+  const migrateAnonymousHistory = async (authToken: string) => {
+    try {
+      const STORAGE_KEY = "anonymous_history";
+      const stored = localStorage.getItem(STORAGE_KEY);
+
+      if (!stored) return;
+
+      const historyItems = JSON.parse(stored);
+
+      if (!historyItems || historyItems.length === 0) return;
+
+      // Transform history items to migration format
+      const migrationItems = historyItems.map(
+        (item: {
+          image: string;
+          filename?: string;
+          results: Array<{ model: string; confidence: number }>;
+          analysis: { confidence: number };
+        }) => ({
+          image: item.image,
+          filename: item.filename || "migrated-image.jpg",
+          aggregate_confidence: item.analysis.confidence,
+          model_results: item.results.map((r) => ({
+            model_name: r.model,
+            confidence: r.confidence,
+          })),
+        })
+      );
+
+      // Send batch migration request
+      const res = await fetch("http://localhost:8000/migrate-history", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ items: migrationItems }),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        console.log(`Migration complete: ${result.message}`);
+        // Clear localStorage after successful migration
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        console.error("Failed to migrate history:", await res.text());
+      }
+    } catch (err) {
+      console.error("Failed to migrate anonymous history:", err);
+    }
   };
 
   const logout = () => {
@@ -105,7 +163,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, signup, logout, loading }}
+      value={{
+        user,
+        token,
+        login,
+        signup,
+        logout,
+        loading,
+        migrateAnonymousHistory,
+      }}
     >
       {children}
     </AuthContext.Provider>
