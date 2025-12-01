@@ -99,6 +99,7 @@ export const Analyzer = () => {
 
       setCurrentResult({
         image: preview,
+        filename: image.name,
         results: results,
         analysis: analysis,
       });
@@ -106,6 +107,7 @@ export const Analyzer = () => {
         ...history,
         {
           image: preview,
+          filename: image.name,
           results: results,
           analysis: analysis,
         },
@@ -148,24 +150,24 @@ export const Analyzer = () => {
             justifyContent: "center",
           }}
         >
-          <Button
-            component="label"
-            variant="contained"
-            sx={{ minWidth: 150 }}
-          >
-            Choose Image
-            <VisuallyHiddenInput
-              type="file"
-              accept="image/png, image/jpeg"
-              onChange={(e) => {
-                if (e.target.files) {
-                  setImage(e.target.files[0]);
-                }
-              }}
-            />
-          </Button>
-
-          {preview && (
+          {!preview ? (
+            <Button
+              component="label"
+              variant="contained"
+              sx={{ minWidth: 150 }}
+            >
+              Choose Image
+              <VisuallyHiddenInput
+                type="file"
+                accept="image/png, image/jpeg"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setImage(e.target.files[0]);
+                  }
+                }}
+              />
+            </Button>
+          ) : (
             <Box
               component="img"
               src={preview}
@@ -181,7 +183,7 @@ export const Analyzer = () => {
         </CardContent>
       </Card>
 
-      {image && (
+      {image && !currentResult && (
         <Button
           variant="contained"
           color="primary"
@@ -195,16 +197,49 @@ export const Analyzer = () => {
       )}
 
       {loading && (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "center", mt: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            justifyContent: "center",
+            mt: 2,
+          }}
+        >
           <CircularProgress size={24} />
           <Typography>Analyzing image...</Typography>
         </Box>
       )}
 
       {currentResult && (
+        <Box sx={{ mb: 3, textAlign: "center" }}>
+          <Button
+            component="label"
+            variant="outlined"
+            size="small"
+            sx={{ textTransform: "none" }}
+          >
+            Analyze New Image
+            <VisuallyHiddenInput
+              type="file"
+              accept="image/png, image/jpeg"
+              onChange={(e) => {
+                if (e.target.files) {
+                  setImage(e.target.files[0]);
+                }
+              }}
+            />
+          </Button>
+        </Box>
+      )}
+
+      {currentResult && (
         <Box sx={{ mt: 4 }}>
-          <Typography variant="h2" sx={{ mb: 2 }}>
+          <Typography variant="h5" sx={{ mb: 0.5 }}>
             Results
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {image?.name}
           </Typography>
 
           <TableContainer component={Paper}>
@@ -286,9 +321,7 @@ export const Analyzer = () => {
                     }}
                   >
                     <TableCell>
-                      <Typography fontWeight="bold">
-                        Final Analysis
-                      </Typography>
+                      <Typography fontWeight="bold">Final Analysis</Typography>
                     </TableCell>
                     <TableCell align="center">
                       <Typography fontWeight="bold">

@@ -7,6 +7,7 @@ export interface Result {
 
 export interface HistoryItem {
   image: string | undefined;
+  filename?: string;
   results: Result[];
   analysis: Result;
 }
