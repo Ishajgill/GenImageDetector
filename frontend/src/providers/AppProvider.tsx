@@ -11,6 +11,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   const [currentResult, setCurrentResult] = useState<HistoryItem | null>(null);
   const authContext = useContext(AuthContext);
 
+  // Reset state on logout
+  useEffect(() => {
+    const handleLogout = () => {
+      setCurrentResult(null);
+      setHistory([]);
+    };
+
+    window.addEventListener("auth:logout", handleLogout);
+    return () => window.removeEventListener("auth:logout", handleLogout);
+  }, []);
+
   // Load history on mount - either from localStorage (anonymous) or backend (logged in)
   useEffect(() => {
     if (authContext?.loading) return;

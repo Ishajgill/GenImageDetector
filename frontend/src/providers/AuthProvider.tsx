@@ -159,6 +159,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("auth_token");
     setToken(null);
     setUser(null);
+    // Trigger app state reset by dispatching a custom event
+    window.dispatchEvent(new Event("auth:logout"));
   };
 
   return (

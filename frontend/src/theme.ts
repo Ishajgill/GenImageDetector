@@ -26,9 +26,23 @@ const commonTheme: ThemeOptions = {
   },
   components: {
     MuiButton: {
+      defaultProps: {
+        size: "small",
+        disableRipple: true,
+      },
       styleOverrides: {
         root: {
           borderRadius: 8,
+        },
+        sizeMedium: {
+          padding: "8px 20px",
+          fontSize: "0.9375rem",
+        },
+        sizeSmall: {
+          padding: "4px 12px",
+          fontSize: "0.8125rem",
+        },
+        sizeLarge: {
           padding: "10px 24px",
           fontSize: "0.95rem",
         },
