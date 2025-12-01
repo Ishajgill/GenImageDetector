@@ -41,11 +41,17 @@ export const Sidebar = () => {
       <Divider />
       <List sx={{ p: 0 }}>
         {history.map((item, idx) => (
-          <ListItem key={item.image} disablePadding>
+          <ListItem key={item.id || `${item.timestamp}-${idx}`} disablePadding>
             <ListItemButton
               onClick={() => {
                 console.log("clicked");
                 setCurrentResult(item);
+                // Update URL if item has an ID
+                if (item.id) {
+                  window.history.pushState({}, "", `/analysis/${item.id}`);
+                } else {
+                  window.history.pushState({}, "", "/");
+                }
               }}
               sx={{
                 display: "flex",
@@ -63,34 +69,56 @@ export const Sidebar = () => {
                   height: 56,
                 }}
               />
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="caption" color="text.secondary" noWrap>
+              <Box
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.5,
+                }}
+              >
+                <Typography variant="body2" fontWeight="medium" noWrap>
                   {item.filename || `Image ${history.length - idx}`}
                 </Typography>
-                <Typography
-                  variant="body2"
-                  fontWeight="medium"
-                  sx={{
-                    color:
-                      confidenceToString(
-                        item.analysis.confidence,
-                        "success.main",
-                        "error.main",
-                        undefined,
-                        item.analysis.model
-                      ) || "text.primary",
-                  }}
-                >
-                  {confidenceToString(
-                    item.analysis.confidence,
-                    "Real",
-                    "Fake",
-                    undefined,
-                    item.analysis.model
-                  )}
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color:
+                        confidenceToString(
+                          item.analysis.confidence,
+                          "success.main",
+                          "error.main",
+                          undefined,
+                          item.analysis.model
+                        ) || "text.primary",
+                    }}
+                  >
+                    {confidenceToString(
+                      item.analysis.confidence,
+                      "Real",
+                      "Fake",
+                      undefined,
+                      item.analysis.model
+                    )}
+                  </Typography>
+                  <Typography variant="body2">
+                    {item.analysis.confidence}%
+                  </Typography>
+                </Box>
                 <Typography variant="caption" color="text.secondary">
-                  {item.analysis.confidence}%
+                  {(() => {
+                    const date = new Date(item.timestamp);
+                    const today = new Date();
+                    const isToday =
+                      date.getDate() === today.getDate() &&
+                      date.getMonth() === today.getMonth() &&
+                      date.getFullYear() === today.getFullYear();
+                    return isToday
+                      ? date.toLocaleTimeString()
+                      : date.toLocaleString();
+                  })()}
                 </Typography>
               </Box>
             </ListItemButton>

@@ -12,6 +12,7 @@ from analysis.models import Analysis, ModelResult
 from analysis.schemas import AnalysisResponse, HistoryMigrationRequest, HistoryMigrationResponse
 from auth.models import User
 from auth.routes import get_current_user
+from ml.classifiers.base import AIvsHumanClassifier, NYUADClassifier
 from ml.classifiers.cnnspot import CNNSpotClassifier
 from ml.classifiers.demo import DemoClassifier
 
@@ -23,6 +24,8 @@ cnnspot_classifier = CNNSpotClassifier(
     crop_size=224,
     quiet=True
 )
+ai_vs_human_classifier = AIvsHumanClassifier()
+nyuad_classifier = NYUADClassifier()
 nebula_comb_v3_classifier = DemoClassifier(seed="nebula")
 open_x8100_classifier = DemoClassifier(seed="quasar")
 
@@ -81,8 +84,10 @@ async def analyze_image(
 
     # Run analysis
     results = {
+        "AI_vs_Human": ai_vs_human_classifier.analyze(img),
         "CNNSpot": cnnspot_classifier.analyze(img),
         "Nebula_comb_v3": nebula_comb_v3_classifier.analyze(img, filename=filename),
+        "NYUAD": nyuad_classifier.analyze(img),
         "open-X8100": open_x8100_classifier.analyze(img, filename=filename),
     }
 
@@ -94,6 +99,7 @@ async def analyze_image(
     aggregate_confidence = round(weighted_sum / total_weight, 1) if total_weight > 0 else 50.0
 
     # Save to database if user is authenticated
+    analysis_id = None
     if current_user:
         analysis = Analysis(
             user_id=current_user.id,
@@ -104,6 +110,7 @@ async def analyze_image(
         db.add(analysis)
         db.commit()
         db.refresh(analysis)
+        analysis_id = analysis.id
 
         # Add model results
         for model_name, confidence in results.items():
@@ -115,7 +122,7 @@ async def analyze_image(
             db.add(model_result)
         db.commit()
 
-    return results
+    return {"analysis_id": analysis_id, "results": results}
 
 
 @router.get("/history", response_model=list[AnalysisResponse])
