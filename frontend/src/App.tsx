@@ -59,7 +59,6 @@ const AppContent = () => {
             overflow: "auto",
             display: "flex",
             justifyContent: "center",
-            alignItems: "center",
             position: "relative",
           }}
         >
