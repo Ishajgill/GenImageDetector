@@ -1,4 +1,4 @@
-import { useState, useMemo, useContext } from "react";
+import { useState, useMemo, useContext, useEffect } from "react";
 import {
   ThemeProvider,
   CssBaseline,
@@ -6,6 +6,8 @@ import {
   IconButton,
   Tooltip,
   Button,
+  Link,
+  Typography,
 } from "@mui/material";
 import { Brightness4, Brightness7, Login, Logout } from "@mui/icons-material";
 import { darkTheme, lightTheme } from "./theme";
@@ -18,10 +20,17 @@ import { AuthDialog } from "./components/auth/AuthDialog";
 import { AuthContext } from "./contexts/AuthContext";
 
 const AppContent = () => {
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem("darkMode");
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const theme = useMemo(() => (darkMode ? darkTheme : lightTheme), [darkMode]);
   const authContext = useContext(AuthContext);
+
+  useEffect(() => {
+    localStorage.setItem("darkMode", JSON.stringify(darkMode));
+  }, [darkMode]);
 
   const handleLogout = () => {
     console.log("Logout clicked", authContext);
@@ -103,7 +112,50 @@ const AppContent = () => {
             </Tooltip>
           </Box>
 
-          <Analyzer />
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              width: "100%",
+              minHeight: "100%",
+              pt: 4,
+              pb: 2,
+            }}
+          >
+            <Box sx={{ flex: 1, display: "flex", alignItems: "center" }}>
+              <Analyzer />
+            </Box>
+
+            {/* Footer */}
+            <Box
+              component="footer"
+              sx={{
+                textAlign: "center",
+                color: "text.secondary",
+              }}
+            >
+              <Typography variant="body2">
+                <Link
+                  href="http://localhost:8000/docs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ mx: 1 }}
+                >
+                  API Docs
+                </Link>
+                •
+                <Link
+                  href="https://github.com/RyanAIIen/GenImageDetector"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ mx: 1 }}
+                >
+                  GitHub
+                </Link>
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       </Box>
 
