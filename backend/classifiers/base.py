@@ -35,3 +35,47 @@ class BaseImageClassifier:
             )
 
         return round(real_score * 100, 1)
+
+
+class AIvsHumanClassifier(BaseImageClassifier):
+    """
+    dima806/ai_vs_human_generated_image_detection
+
+    Uses official config.json label mapping:
+    - Label 0: "human" (real images)
+    - Label 1: "AI-generated" (fake images)
+    """
+    def __init__(self, real_bias: float = 0.0):
+        super().__init__(
+            "dima806/ai_vs_human_generated_image_detection",
+            {'0': "human", '1': "AI-generated"},  # From official config.json
+            "human",
+        )
+        self.real_bias = real_bias
+
+    def analyze(self, image: Image.Image) -> float:
+        raw_score = super().analyze(image)
+        adjusted_score = min(100.0, raw_score + self.real_bias)
+        return round(adjusted_score, 1)
+
+
+class NYUADClassifier(BaseImageClassifier):
+    """
+    NYUAD-ComNets/NYUAD_AI-generated_images_detector
+
+    Uses official config.json label mapping:
+    - Label 0: "dalle" (DALL-E generated images)
+    - Label 1: "real" (real images)
+    - Label 2: "sd" (Stable Diffusion generated images)
+    """
+    def __init__(self, real_bias: float = 0.0):
+        super().__init__(
+            "NYUAD-ComNets/NYUAD_AI-generated_images_detector",
+            {"0": "dalle", "1": "real", "2": "sd"},  # From official config.json
+        )
+        self.real_bias = real_bias
+
+    def analyze(self, image: Image.Image) -> float:
+        raw_score = super().analyze(image)
+        adjusted_score = min(100.0, raw_score + self.real_bias)
+        return round(adjusted_score, 1)

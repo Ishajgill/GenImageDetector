@@ -8,25 +8,29 @@ are aggregated into a final confidence score.
 
 ## Requirements
 
-- Python 3.10+
+- **Miniconda or Anaconda** - [Download Miniconda](https://www.anaconda.com/docs/getting-started/miniconda/main)
+- **Python 3.13** (installed via conda environment)
+
+**First-time setup:** Initialize conda for your shell, then restart your terminal:
+
+```sh
+conda init
+```
 
 ---
 
 ## Development
 
 ```sh
-# Create the virtual environment
-python -m venv venv
+# Create a conda environment with Python 3.13
+conda create -n gid python=3.13
 
-# Activate the virtual environment:
-# in Linux & macOS
-. venv/bin/activate
-# or Windows
-.\venv\Scripts\activate.bat
+# Activate the environment
+conda activate gid
 
-# Install the dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# Run the app
+# Run the development server
 uvicorn main:app --reload
 ```
