@@ -15,7 +15,8 @@ import {
   Paper,
   styled,
 } from "@mui/material";
-import { AppContext, type AppContextType } from "../../AppContext";
+import { AppContext, type AppContextType } from "../../contexts/AppContext";
+import { AuthContext } from "../../contexts/AuthContext";
 import { confidenceToString } from "../../utils";
 
 const VisuallyHiddenInput = styled("input")(() => ({
@@ -36,8 +37,16 @@ export const Analyzer = () => {
   const [loading, setLoading] = useState(false);
 
   const context = useContext(AppContext);
-  const { currentResult, setCurrentResult, history, setHistory } =
-    context as AppContextType;
+  const {
+    currentResult,
+    setCurrentResult,
+    history,
+    setHistory,
+    refreshHistory,
+  } = context as AppContextType;
+
+  const authContext = useContext(AuthContext);
+  const token = authContext?.token;
 
   useEffect(() => {
     if (!image) return;
@@ -68,8 +77,14 @@ export const Analyzer = () => {
     formData.append("file", image);
 
     try {
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const res = await fetch("http://localhost:8000/analyze", {
         method: "POST",
+        headers,
         body: formData,
       });
 
@@ -97,21 +112,23 @@ export const Analyzer = () => {
         confidence: Math.round(aggregateConfidence * 10) / 10, // Round to 1 decimal
       };
 
-      setCurrentResult({
+      const newHistoryItem = {
         image: preview,
         filename: image.name,
         results: results,
         analysis: analysis,
-      });
-      setHistory([
-        ...history,
-        {
-          image: preview,
-          filename: image.name,
-          results: results,
-          analysis: analysis,
-        },
-      ]);
+      };
+
+      setCurrentResult(newHistoryItem);
+
+      // Only add to history for anonymous users
+      // For logged-in users, the backend saves it and we'll refetch
+      if (!token) {
+        setHistory([...history, newHistoryItem]);
+      } else {
+        // Refetch history from backend to get the newly saved item
+        await refreshHistory();
+      }
     } catch (err) {
       console.error("Upload failed:", err);
       alert("Error analyzing image");

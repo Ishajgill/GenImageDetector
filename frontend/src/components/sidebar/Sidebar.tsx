@@ -8,7 +8,7 @@ import {
   Avatar,
   Divider,
 } from "@mui/material";
-import { AppContext, type AppContextType } from "../../AppContext";
+import { AppContext, type AppContextType } from "../../contexts/AppContext";
 import { confidenceToString } from "../../utils";
 
 export const Sidebar = () => {

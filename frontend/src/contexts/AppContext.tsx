@@ -1,4 +1,5 @@
-import React, { createContext } from "react";
+import { createContext } from "react";
+import type React from "react";
 
 export interface Result {
   model: string;
@@ -17,6 +18,7 @@ export interface AppContextType {
   setHistory: React.Dispatch<React.SetStateAction<HistoryItem[]>>;
   currentResult: HistoryItem | null;
   setCurrentResult: React.Dispatch<React.SetStateAction<HistoryItem | null>>;
+  refreshHistory: () => Promise<void>;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
