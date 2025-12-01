@@ -3,7 +3,7 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from torchvision.models import resnet50
 
-from classifiers.pytorch_base import PyTorchClassifier
+from ml.classifiers.pytorch_base import PyTorchClassifier
 
 
 class CNNSpotClassifier(PyTorchClassifier):
@@ -56,7 +56,7 @@ class CNNSpotClassifier(PyTorchClassifier):
         CNNSpot outputs a single logit. Based on empirical testing on full validation:
         - Real images: HIGHER raw logits (mean ~5-8, range -8 to 38)
         - Fake images: LOWER raw logits (mean ~0-3, range -8 to 16)
-        
+
         Apply skepticism bias to shift decision boundary, then sigmoid
         to convert to probability that image is REAL (since higher logits = more real).
 
@@ -67,15 +67,15 @@ class CNNSpotClassifier(PyTorchClassifier):
             Confidence score (0-100) that image is real
         """
         raw_logit = output.item()
-        
+
         # Apply skepticism bias: subtract from raw logit to shift toward "fake"
         # Negative bias makes model more skeptical (require higher logit to classify as real)
         skepticism_bias = -4.5
         adjusted_logit = raw_logit + skepticism_bias
-        
+
         # Direct sigmoid gives prob_real (since higher logits = more real)
         prob_real = torch.sigmoid(torch.tensor(adjusted_logit)).item()
-        
+
         # Debug logging (unless quiet mode)
         if not self.quiet:
             print(f"[CNNSpot Debug] Raw: {raw_logit:.4f}, Adjusted: {adjusted_logit:.4f}, Prob(real): {prob_real:.4f}")
