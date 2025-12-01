@@ -10,11 +10,12 @@ __pycache__/
 *.sln
 *.suo
 *.sw?
-dist
-dist-ssr
+data/
+dist/
+dist-ssr/
 lerna-debug.log*
-logs
-node_modules
+logs/
+node_modules/
 venv/
 
 # Allow this
