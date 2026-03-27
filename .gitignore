@@ -1,23 +1,20 @@
-__pycache__/
-.DS_Store
-.idea
-.vscode/*
-*.db
-*.local
-*.log
-*.njsproj
-*.ntvs*
-*.pyc
-*.sln
-*.suo
-*.sw?
-data/
-dist-ssr/
-dist/
-lerna-debug.log*
-logs/
-node_modules/
+# Large data folders
+raw_dataset/
+raw_dataset_zip/
+checkpoints/
 venv/
+logs/
+save/
 
-# Allow this
-!.vscode/extensions.json
+# Cloned repos (have their own git)
+GenImage/
+GenImageDetector/
+SupContrast/
+VIBAIGCDetect/
+
+# Python
+__pycache__/
+*.pyc
+*.pth
+*.out
+*.err
