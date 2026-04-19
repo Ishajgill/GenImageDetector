@@ -1,20 +1,27 @@
-# Large data folders
-raw_dataset/
-raw_dataset_zip/
-checkpoints/
-venv/
-logs/
-save/
-
-# Cloned repos (have their own git)
-GenImage/
-GenImageDetector/
-SupContrast/
-VIBAIGCDetect/
-
-# Python
 __pycache__/
+.DS_Store
+.idea
+.vscode/*
+*.db
+*.local
+*.log
+*.njsproj
+*.ntvs*
 *.pyc
-*.pth
-*.out
-*.err
+*.sln
+*.suo
+*.sw?
+data/
+dist-ssr/
+dist/
+lerna-debug.log*
+logs/
+node_modules/
+venv/
+
+# Allow this
+!.vscode/extensions.json
+.venv/
+
+backend/analysis/routes_old.py
+*-IshaGill.*
