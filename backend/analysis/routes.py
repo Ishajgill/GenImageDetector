@@ -2,11 +2,9 @@
 import io
 import base64
 from typing import Optional
-
 from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Depends
 from PIL import Image
 from sqlalchemy.orm import Session
-
 from db.database import get_db
 from analysis.models import Analysis, ModelResult
 from analysis.schemas import AnalysisResponse, HistoryMigrationRequest, HistoryMigrationResponse
@@ -14,7 +12,9 @@ from auth.models import User
 from auth.routes import get_current_user
 from ml.classifiers.base import AIvsHumanClassifier, NYUADClassifier
 from ml.classifiers.cnnspot import CNNSpotClassifier
+from ml.classifiers.effort import EffortClassifier
 from ml.classifiers.demo import DemoClassifier
+
 
 router = APIRouter(tags=["Analysis"])
 
@@ -24,9 +24,18 @@ cnnspot_classifier = CNNSpotClassifier(
     crop_size=224,
     quiet=True
 )
+
 ai_vs_human_classifier = AIvsHumanClassifier()
+
 nyuad_classifier = NYUADClassifier()
+
+effort_classifier = EffortClassifier(
+     r"C:\Users\gillc\model_epoch_best.pth",
+    quiet=True
+)
+
 nebula_comb_v3_classifier = DemoClassifier(seed="nebula")
+
 open_x8100_classifier = DemoClassifier(seed="quasar")
 
 
@@ -86,6 +95,7 @@ async def analyze_image(
     results = {
         "AI_vs_Human": ai_vs_human_classifier.analyze(img),
         "CNNSpot": cnnspot_classifier.analyze(img),
+        "Effort": effort_classifier.analyze(img),
         "Nebula_comb_v3": nebula_comb_v3_classifier.analyze(img, filename=filename),
         "NYUAD": nyuad_classifier.analyze(img),
         "open-X8100": open_x8100_classifier.analyze(img, filename=filename),
