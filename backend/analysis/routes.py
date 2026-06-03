@@ -14,7 +14,7 @@ from ml.classifiers.base import AIvsHumanClassifier, NYUADClassifier
 from ml.classifiers.cnnspot import CNNSpotClassifier
 from ml.classifiers.effort import EffortClassifier
 
-from ml.classifiers.npr import NPRClassifier
+#from ml.classifiers.npr import NPRClassifier
 
 from ml.classifiers.demo import DemoClassifier
 
@@ -28,14 +28,11 @@ cnnspot_classifier = CNNSpotClassifier(
     quiet=True
 )
 
-effort_classifier = EffortClassifier(
-    "ml/models/Effort/effort_clip_L14_trainOn_sdv14.pth",
-    quiet=True,
-)
-npr_classifier = NPRClassifier(
-    "ml/models/NPR/NPR_GenImage_sdv4.pth",
-    quiet=True,
-)
+
+# npr_classifier = NPRClassifier(
+#     "ml/models/NPR/NPR_GenImage_sdv4.pth",
+#     quiet=True,
+# )
 
 # placeholders
 
@@ -44,8 +41,9 @@ ai_vs_human_classifier = AIvsHumanClassifier()
 nyuad_classifier = NYUADClassifier()
 
 effort_classifier = EffortClassifier(
-     r"C:\Users\gillc\model_epoch_best.pth",
+    "ml/models/Effort/model_epoch_best.pth",
     quiet=True
+
 )
 
 nebula_comb_v3_classifier = DemoClassifier(seed="nebula")
@@ -111,7 +109,7 @@ async def analyze_image(
         "CNNSpot": cnnspot_classifier.analyze(img),
         "Effort": effort_classifier.analyze(img),
         "Nebula_comb_v3": nebula_comb_v3_classifier.analyze(img, filename=filename),
-        "NPR": npr_classifier.analyze(img),
+        #"NPR": npr_classifier.analyze(img),
         "NYUAD": nyuad_classifier.analyze(img),
         "open-X8100": open_x8100_classifier.analyze(img, filename=filename),
     }

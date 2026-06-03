@@ -50,7 +50,11 @@ class PyTorchClassifier(ABC):
         Load model weights from .pth file.
         """
         print(f"Loading weights from {self.model_path}")
-        state_dict = torch.load(self.model_path, map_location=self.device)
+        state_dict = torch.load(
+            self.model_path,
+            map_location=self.device,
+            weights_only=False
+        )
 
         # Handle different state dict formats
         if isinstance(state_dict, dict) and 'model' in state_dict:

@@ -18,7 +18,9 @@ lerna-debug.log*
 logs/
 node_modules/
 venv/
-
+# Large model checkpoints
+backend/ml/models/Effort/*.pth
+backend/ml/models/NPR/*.pth
 # Allow this
 !.vscode/extensions.json
 .venv/
