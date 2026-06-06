@@ -1,5 +1,6 @@
 """Analysis API routes for image upload and analysis."""
 import io
+import os
 import base64
 from typing import Optional
 from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Depends
@@ -13,8 +14,8 @@ from auth.routes import get_current_user
 from ml.classifiers.base import AIvsHumanClassifier, NYUADClassifier
 from ml.classifiers.cnnspot import CNNSpotClassifier
 from ml.classifiers.effort import EffortClassifier
-
-#from ml.classifiers.npr import NPRClassifier
+from ml.classifiers.npr import NPRClassifier
+from ml.classifiers.vib import VIBClassifier
 
 from ml.classifiers.demo import DemoClassifier
 
@@ -29,27 +30,18 @@ cnnspot_classifier = CNNSpotClassifier(
 )
 
 
-# npr_classifier = NPRClassifier(
-#     "ml/models/NPR/NPR_GenImage_sdv4.pth",
-#     quiet=True,
-# )
-
-# placeholders
-
-ai_vs_human_classifier = AIvsHumanClassifier()
-
-nyuad_classifier = NYUADClassifier()
-
-effort_classifier = EffortClassifier(
-    "ml/models/Effort/model_epoch_best.pth",
-    quiet=True
-
+npr_classifier = NPRClassifier(
+    "ml/models/NPR/NPR_GenImage_sdv4.pth",
+     quiet=True,
 )
-
-nebula_comb_v3_classifier = DemoClassifier(seed="nebula")
-
-open_x8100_classifier = DemoClassifier(seed="quasar")
-
+effort_classifier = EffortClassifier(
+    "ml/models/Effort/effort_clip_L14_trainOn_sdv14.pth",
+    quiet=True
+)
+vib_classifier = VIBClassifier(
+    "ml/models/VIB/best.pth",
+    quiet=True
+)
 
 @router.post("/analyze")
 async def analyze_image(
@@ -105,14 +97,12 @@ async def analyze_image(
 
     # Run analysis
     results = {
-        "AI_vs_Human": ai_vs_human_classifier.analyze(img),
         "CNNSpot": cnnspot_classifier.analyze(img),
         "Effort": effort_classifier.analyze(img),
-        "Nebula_comb_v3": nebula_comb_v3_classifier.analyze(img, filename=filename),
-        #"NPR": npr_classifier.analyze(img),
-        "NYUAD": nyuad_classifier.analyze(img),
-        "open-X8100": open_x8100_classifier.analyze(img, filename=filename),
+        "NPR": npr_classifier.analyze(img),
     }
+    if vib_classifier is not None:
+        results["VIB"] = vib_classifier.analyze(img)
 
     # Calculate aggregate (same as frontend)
     confidences = list(results.values())
