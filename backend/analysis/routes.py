@@ -1,8 +1,10 @@
 """Analysis API routes for image upload and analysis."""
 import io
+import os
 import base64
 from typing import Optional
 from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Depends
+from huggingface_hub import hf_hub_download
 from PIL import Image
 from sqlalchemy.orm import Session
 from db.database import get_db
@@ -17,23 +19,37 @@ from ml.classifiers.vib import VIBClassifier
 
 router = APIRouter(tags=["Analysis"])
 
+# Public Hugging Face repo hosting the model weights (flat layout). Override with
+# the HF_WEIGHTS_REPO env var if the weights move to a different repo.
+HF_REPO_ID = os.getenv("HF_WEIGHTS_REPO", "danielcobb/GenImageDetector-weights")
+
+
+def _weights(filename: str) -> str:
+    """Download a weight file from the Hugging Face Hub and return its local path.
+
+    Files are cached by huggingface_hub, so this only hits the network on the
+    first run (or when the remote file changes).
+    """
+    return hf_hub_download(repo_id=HF_REPO_ID, filename=filename)
+
+
 # Initialize classifiers
 cnnspot_classifier = CNNSpotClassifier(
-    "ml/models/CNNSpot/2025_10_22_epoch_best.pth",
+    _weights("2025_10_22_epoch_best.pth"),
     crop_size=224,
     quiet=True
 )
 
 npr_classifier = NPRClassifier(
-    "ml/models/NPR/NPR_GenImage_sdv4.pth",
+    _weights("NPR_GenImage_sdv4.pth"),
      quiet=True,
 )
 effort_classifier = EffortClassifier(
-    "ml/models/Effort/effort_clip_L14_trainOn_sdv14.pth",
+    _weights("effort_clip_L14_trainOn_sdv14.pth"),
     quiet=True
 )
 vib_classifier = VIBClassifier(
-    "ml/models/VIB/best.pth",
+    _weights("best.pth"),
     quiet=True
 )
 
