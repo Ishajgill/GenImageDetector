@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect, useMemo } from "react";
 import {
   ThemeProvider,
   CssBaseline,
@@ -10,8 +10,19 @@ import {
   IconButton,
   Link,
 } from "@mui/material";
-import { Login, Logout, History } from "@mui/icons-material";
-import { theme } from "./theme";
+import { Login, Logout, History, DarkMode, LightMode } from "@mui/icons-material";
+import { makeTheme } from "./theme";
+
+type ColorMode = "light" | "dark";
+const COLOR_MODE_KEY = "color-mode";
+
+const getInitialMode = (): ColorMode => {
+  if (typeof window === "undefined") return "light";
+  const stored = window.localStorage.getItem(COLOR_MODE_KEY);
+  if (stored === "light" || stored === "dark") return stored;
+  // Default to light; users opt into dark via the toggle (which is persisted).
+  return "light";
+};
 import "./App.css";
 import { Analyzer } from "./components/analyzer/Analyzer";
 import { Sidebar } from "./components/sidebar/Sidebar";
@@ -26,6 +37,16 @@ const AppContent = () => {
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [page, setPage] = useState<"home" | "how-it-works">("home");
   const [showHistory, setShowHistory] = useState(false);
+  const [mode, setMode] = useState<ColorMode>(getInitialMode);
+
+  const theme = useMemo(() => makeTheme(mode), [mode]);
+
+  useEffect(() => {
+    window.localStorage.setItem(COLOR_MODE_KEY, mode);
+  }, [mode]);
+
+  const toggleMode = () =>
+    setMode((prev) => (prev === "dark" ? "light" : "dark"));
 
   const authContext = useContext(AuthContext);
   const appContext = useContext(AppContext);
@@ -118,10 +139,17 @@ const AppContent = () => {
               gap: 1.5,
               px: 3,
               py: 1.5,
-              background: "rgba(255,255,255,0.85)",
+              background: (t) =>
+                t.palette.mode === "dark"
+                  ? "rgba(24,24,38,0.85)"
+                  : "rgba(255,255,255,0.85)",
               backdropFilter: "blur(20px)",
-              borderBottom: "1px solid rgba(0,0,0,0.06)",
-              boxShadow: "0 1px 20px rgba(0,0,0,0.04)",
+              borderBottom: "1px solid",
+              borderColor: "divider",
+              boxShadow: (t) =>
+                t.palette.mode === "dark"
+                  ? "0 1px 20px rgba(0,0,0,0.4)"
+                  : "0 1px 20px rgba(0,0,0,0.04)",
             }}
           >
             <Box
@@ -164,7 +192,7 @@ const AppContent = () => {
                   fontFamily: "'Syne',sans-serif",
                   fontWeight: 800,
                   fontSize: "15px",
-                  color: "#1a1a2e",
+                  color: "text.primary",
                 }}
               >
                 GenImage
@@ -184,7 +212,7 @@ const AppContent = () => {
                   fontSize: "13px",
                   bgcolor:
                     page === "home" ? "rgba(99,102,241,0.06)" : "transparent",
-                  "&:hover": { color: "#1a1a2e", bgcolor: "#f1f5f9" },
+                  "&:hover": { color: "text.primary", bgcolor: "action.hover" },
                 }}
               >
                 Home
@@ -200,7 +228,7 @@ const AppContent = () => {
                     page === "how-it-works"
                       ? "rgba(99,102,241,0.06)"
                       : "transparent",
-                  "&:hover": { color: "#1a1a2e", bgcolor: "#f1f5f9" },
+                  "&:hover": { color: "text.primary", bgcolor: "action.hover" },
                 }}
               >
                 How it works
@@ -214,7 +242,7 @@ const AppContent = () => {
                   color: "#64748b",
                   fontWeight: 600,
                   fontSize: "13px",
-                  "&:hover": { color: "#1a1a2e", bgcolor: "#f1f5f9" },
+                  "&:hover": { color: "text.primary", bgcolor: "action.hover" },
                 }}
               >
                 API
@@ -259,7 +287,7 @@ const AppContent = () => {
                   sx={{
                     fontSize: "13px",
                     fontWeight: 600,
-                    color: "#1a1a2e",
+                    color: "text.primary",
                     display: { xs: "none", sm: "block" },
                   }}
                 >
@@ -302,8 +330,12 @@ const AppContent = () => {
             sx={{
               textAlign: "center",
               py: 1.5,
-              borderTop: "1px solid rgba(0,0,0,0.06)",
-              bgcolor: "rgba(255,255,255,0.7)",
+              borderTop: "1px solid",
+              borderColor: "divider",
+              bgcolor: (t) =>
+                t.palette.mode === "dark"
+                  ? "rgba(24,24,38,0.7)"
+                  : "rgba(255,255,255,0.7)",
             }}
           >
             <Typography
@@ -355,6 +387,38 @@ const AppContent = () => {
           </Box>
         </Box>
       </Box>
+
+      <Tooltip
+        title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        placement="left"
+      >
+        <IconButton
+          onClick={toggleMode}
+          aria-label="Toggle dark mode"
+          sx={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            zIndex: 1300,
+            width: 48,
+            height: 48,
+            color: "#fff",
+            background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+            boxShadow: "0 6px 20px rgba(99,102,241,0.4)",
+            "&:hover": {
+              background: "linear-gradient(135deg,#4f46e5,#7c3aed)",
+              transform: "translateY(-2px)",
+            },
+            transition: "transform 0.2s ease, background 0.2s ease",
+          }}
+        >
+          {mode === "dark" ? (
+            <LightMode fontSize="small" />
+          ) : (
+            <DarkMode fontSize="small" />
+          )}
+        </IconButton>
+      </Tooltip>
 
       <AuthDialog
         open={authDialogOpen}

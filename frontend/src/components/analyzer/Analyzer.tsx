@@ -15,6 +15,7 @@ import {
   TableRow,
   Paper,
   styled,
+  useTheme,
 } from "@mui/material";
 import {
   CheckCircleOutline,
@@ -152,6 +153,7 @@ const ConfidenceBar = ({
 };
 
 const ConfidenceGauge = ({ confidence }: { confidence: number }) => {
+  const theme = useTheme();
   const [animated, setAnimated] = useState(0);
   useEffect(() => {
     const t = setTimeout(() => setAnimated(confidence), 100);
@@ -164,6 +166,8 @@ const ConfidenceGauge = ({ confidence }: { confidence: number }) => {
   const circumference = Math.PI * r;
   const progress = (animated / 100) * circumference;
   const color = isReal ? "#16a34a" : "#e11d48";
+  const trackColor =
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)";
   return (
     <Box
       sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
@@ -172,7 +176,7 @@ const ConfidenceGauge = ({ confidence }: { confidence: number }) => {
         <path
           d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
           fill="none"
-          stroke="rgba(0,0,0,0.08)"
+          stroke={trackColor}
           strokeWidth="7"
           strokeLinecap="round"
         />
@@ -567,7 +571,8 @@ export const Analyzer = () => {
                     lineHeight: 1.05,
                     letterSpacing: "-.03em",
                     mb: 2,
-                    color: "#1a1a2e",
+                    color: (t) =>
+                      t.palette.mode === "dark" ? "#e8e8f3" : "#1a1a2e",
                   }}
                 >
                   Is that photo
@@ -645,11 +650,18 @@ export const Analyzer = () => {
                 <Box
                   key={i}
                   sx={{
-                    bgcolor: "#fff",
+                    bgcolor: (t) =>
+                      t.palette.mode === "dark" ? "#14141f" : "#fff",
                     borderRadius: 3,
                     p: 3,
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
-                    border: "1px solid rgba(0,0,0,0.05)",
+                    boxShadow: (t) =>
+                      t.palette.mode === "dark"
+                        ? "0 4px 20px rgba(0,0,0,0.45)"
+                        : "0 4px 20px rgba(0,0,0,0.05)",
+                    border: (t) =>
+                      t.palette.mode === "dark"
+                        ? "1px solid rgba(255,255,255,0.07)"
+                        : "1px solid rgba(0,0,0,0.05)",
                     transition: "all .3s",
                     "&:hover": {
                       transform: "translateY(-4px)",
@@ -677,7 +689,8 @@ export const Analyzer = () => {
                       fontFamily: "'Syne',sans-serif",
                       fontSize: 14,
                       fontWeight: 700,
-                      color: "#1a1a2e",
+                      color: (t) =>
+                        t.palette.mode === "dark" ? "#e8e8f3" : "#1a1a2e",
                       mb: 0.75,
                     }}
                   >
@@ -707,13 +720,20 @@ export const Analyzer = () => {
           >
             <Box
               sx={{
-                bgcolor: "#fff",
-                border: "1px solid rgba(0,0,0,0.06)",
+                bgcolor: (t) =>
+                  t.palette.mode === "dark" ? "#181826" : "#fff",
+                border: (t) =>
+                  t.palette.mode === "dark"
+                    ? "1px solid rgba(255,255,255,0.08)"
+                    : "1px solid rgba(0,0,0,0.06)",
                 borderRadius: 3,
                 p: 3,
                 width: "100%",
                 textAlign: "center",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                boxShadow: (t) =>
+                  t.palette.mode === "dark"
+                    ? "0 4px 20px rgba(0,0,0,0.5)"
+                    : "0 4px 20px rgba(0,0,0,0.06)",
               }}
             >
               <Typography
@@ -780,12 +800,19 @@ export const Analyzer = () => {
         {loading && (
           <Box
             sx={{
-              bgcolor: "#fff",
-              border: "1px solid rgba(0,0,0,0.06)",
+              bgcolor: (t) =>
+                t.palette.mode === "dark" ? "#181826" : "#fff",
+              border: (t) =>
+                t.palette.mode === "dark"
+                  ? "1px solid rgba(255,255,255,0.08)"
+                  : "1px solid rgba(0,0,0,0.06)",
               borderRadius: 4,
               p: { xs: 4, md: 6 },
               textAlign: "center",
-              boxShadow: "0 8px 40px rgba(0,0,0,0.08)",
+              boxShadow: (t) =>
+                t.palette.mode === "dark"
+                  ? "0 8px 40px rgba(0,0,0,0.55)"
+                  : "0 8px 40px rgba(0,0,0,0.08)",
               animation: "fadeUp .4s ease forwards",
             }}
           >
@@ -842,8 +869,12 @@ export const Analyzer = () => {
           <Box sx={{ animation: "fadeUp .4s ease forwards" }}>
             <Box
               sx={{
-                bgcolor: "#fff",
-                border: "1px solid rgba(0,0,0,0.06)",
+                bgcolor: (t) =>
+                  t.palette.mode === "dark" ? "#181826" : "#fff",
+                border: (t) =>
+                  t.palette.mode === "dark"
+                    ? "1px solid rgba(255,255,255,0.08)"
+                    : "1px solid rgba(0,0,0,0.06)",
                 borderRadius: 3,
                 p: 3,
                 mb: 2,
@@ -851,7 +882,10 @@ export const Analyzer = () => {
                 alignItems: "center",
                 gap: 3,
                 flexWrap: "wrap",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                boxShadow: (t) =>
+                  t.palette.mode === "dark"
+                    ? "0 4px 20px rgba(0,0,0,0.5)"
+                    : "0 4px 20px rgba(0,0,0,0.06)",
               }}
             >
               {preview && (
@@ -864,7 +898,10 @@ export const Analyzer = () => {
                     maxWidth: 140,
                     objectFit: "cover",
                     borderRadius: 2,
-                    border: "1px solid rgba(0,0,0,0.06)",
+                    border: (t) =>
+                      t.palette.mode === "dark"
+                        ? "1px solid rgba(255,255,255,0.08)"
+                        : "1px solid rgba(0,0,0,0.06)",
                   }}
                 />
               )}
@@ -874,7 +911,8 @@ export const Analyzer = () => {
                     fontFamily: "'Syne',sans-serif",
                     fontWeight: 800,
                     fontSize: 16,
-                    color: "#1a1a2e",
+                    color: (t) =>
+                      t.palette.mode === "dark" ? "#e8e8f3" : "#1a1a2e",
                     mb: 0.5,
                   }}
                 >
@@ -912,20 +950,32 @@ export const Analyzer = () => {
             </Box>
             <Box
               sx={{
-                bgcolor: "#fff",
-                border: "1px solid rgba(0,0,0,0.06)",
+                bgcolor: (t) =>
+                  t.palette.mode === "dark" ? "#181826" : "#fff",
+                border: (t) =>
+                  t.palette.mode === "dark"
+                    ? "1px solid rgba(255,255,255,0.08)"
+                    : "1px solid rgba(0,0,0,0.06)",
                 borderRadius: 3,
                 overflow: "hidden",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                boxShadow: (t) =>
+                  t.palette.mode === "dark"
+                    ? "0 4px 20px rgba(0,0,0,0.5)"
+                    : "0 4px 20px rgba(0,0,0,0.06)",
               }}
             >
               <Box
                 sx={{
                   px: 3,
                   py: 2.5,
-                  borderBottom: "1px solid rgba(0,0,0,0.06)",
-                  background:
-                    "linear-gradient(135deg,rgba(99,102,241,0.03),rgba(139,92,246,0.02))",
+                  borderBottom: (t) =>
+                    t.palette.mode === "dark"
+                      ? "1px solid rgba(255,255,255,0.08)"
+                      : "1px solid rgba(0,0,0,0.06)",
+                  background: (t) =>
+                    t.palette.mode === "dark"
+                      ? "linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.08))"
+                      : "linear-gradient(135deg,rgba(99,102,241,0.03),rgba(139,92,246,0.02))",
                 }}
               >
                 <Typography
@@ -933,7 +983,8 @@ export const Analyzer = () => {
                     fontFamily: "'Syne',sans-serif",
                     fontWeight: 800,
                     fontSize: 17,
-                    color: "#1a1a2e",
+                    color: (t) =>
+                      t.palette.mode === "dark" ? "#e8e8f3" : "#1a1a2e",
                   }}
                 >
                   Analysis Results
