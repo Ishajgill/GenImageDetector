@@ -4,7 +4,6 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
-
 from db.database import Base
 
 class Analysis(Base):
@@ -21,7 +20,6 @@ class Analysis(Base):
     # Relationship to user and model results
     user = relationship("User", back_populates="analyses")
     model_results = relationship("ModelResult", back_populates="analysis", cascade="all, delete-orphan")
-
 
 class ModelResult(Base):
     """Individual model result within an analysis."""

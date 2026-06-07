@@ -13,7 +13,6 @@ from auth.models import User
 from analysis.models import Analysis  # Import to resolve relationship
 from auth.auth import get_password_hash
 
-
 def load_users():
     """Load users from fixtures."""
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -47,7 +46,6 @@ def load_users():
         print(f"Error loading users: {e}")
     finally:
         db.close()
-
 
 if __name__ == "__main__":
     load_users()

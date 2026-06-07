@@ -12,7 +12,6 @@ from auth.auth import verify_password, get_password_hash, create_access_token, d
 
 router = APIRouter(tags=["Authentication"])
 
-
 def get_current_user(authorization: Optional[str] = Header(None), db: Session = Depends(get_db)) -> Optional[User]:
     """Get current user from JWT token."""
     if not authorization:
@@ -35,7 +34,6 @@ def get_current_user(authorization: Optional[str] = Header(None), db: Session = 
         return user
     except:
         return None
-
 
 @router.post("/auth/signup", response_model=Token)
 async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
@@ -60,7 +58,6 @@ async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
 
     return {"access_token": access_token, "token_type": "bearer"}
 
-
 @router.post("/auth/login", response_model=Token)
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     """Login with username and password."""
@@ -75,7 +72,6 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
-
 
 @router.get("/auth/me")
 async def get_me(current_user: Optional[User] = Depends(get_current_user)):

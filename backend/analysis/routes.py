@@ -1,6 +1,5 @@
 """Analysis API routes for image upload and analysis."""
 import io
-import os
 import base64
 from typing import Optional
 from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Depends
@@ -11,14 +10,10 @@ from analysis.models import Analysis, ModelResult
 from analysis.schemas import AnalysisResponse, HistoryMigrationRequest, HistoryMigrationResponse
 from auth.models import User
 from auth.routes import get_current_user
-from ml.classifiers.base import AIvsHumanClassifier, NYUADClassifier
 from ml.classifiers.cnnspot import CNNSpotClassifier
 from ml.classifiers.effort import EffortClassifier
 from ml.classifiers.npr import NPRClassifier
 from ml.classifiers.vib import VIBClassifier
-
-from ml.classifiers.demo import DemoClassifier
-
 
 router = APIRouter(tags=["Analysis"])
 
@@ -28,7 +23,6 @@ cnnspot_classifier = CNNSpotClassifier(
     crop_size=224,
     quiet=True
 )
-
 
 npr_classifier = NPRClassifier(
     "ml/models/NPR/NPR_GenImage_sdv4.pth",
@@ -137,7 +131,6 @@ async def analyze_image(
 
     return {"analysis_id": analysis_id, "results": results}
 
-
 @router.get("/history", response_model=list[AnalysisResponse])
 async def get_history(current_user: Optional[User] = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get user's analysis history."""
@@ -146,7 +139,6 @@ async def get_history(current_user: Optional[User] = Depends(get_current_user), 
 
     analyses = db.query(Analysis).filter(Analysis.user_id == current_user.id).order_by(Analysis.created_at.desc()).all()
     return analyses
-
 
 @router.post("/migrate-history", response_model=HistoryMigrationResponse)
 async def migrate_history(
