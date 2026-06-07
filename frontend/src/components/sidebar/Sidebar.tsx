@@ -27,11 +27,15 @@ export const Sidebar = () => {
         minWidth: 260,
         height: "100vh",
         overflowY: "auto",
-        bgcolor: "#fff",
-        borderRight: "1px solid rgba(0,0,0,0.06)",
+        bgcolor: "background.paper",
+        borderRight: 1,
+        borderColor: "divider",
         display: "flex",
         flexDirection: "column",
-        boxShadow: "2px 0 12px rgba(0,0,0,0.04)",
+        boxShadow: (t) =>
+          t.palette.mode === "dark"
+            ? "2px 0 12px rgba(0,0,0,0.4)"
+            : "2px 0 12px rgba(0,0,0,0.04)",
       }}
     >
       <Box
@@ -41,7 +45,8 @@ export const Sidebar = () => {
           display: "flex",
           alignItems: "center",
           gap: 1.5,
-          borderBottom: "1px solid rgba(0,0,0,0.06)",
+          borderBottom: 1,
+          borderColor: "divider",
         }}
       >
         <Box
@@ -63,7 +68,7 @@ export const Sidebar = () => {
           sx={{
             fontSize: "11px",
             fontWeight: 700,
-            color: "#94a3b8",
+            color: "text.secondary",
             letterSpacing: ".08em",
             textTransform: "uppercase",
           }}
@@ -131,7 +136,8 @@ export const Sidebar = () => {
                     height: 44,
                     borderRadius: 1.5,
                     objectFit: "cover",
-                    border: "1px solid rgba(0,0,0,0.06)",
+                    border: 1,
+                    borderColor: "divider",
                     flexShrink: 0,
                   }}
                 />
@@ -140,7 +146,7 @@ export const Sidebar = () => {
                     sx={{
                       fontSize: "12px",
                       fontWeight: 600,
-                      color: "#1a1a2e",
+                      color: "text.primary",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -181,11 +187,11 @@ export const Sidebar = () => {
                         item.analysis.model,
                       )}
                     </Typography>
-                    <Typography sx={{ fontSize: "10px", color: "#94a3b8" }}>
+                    <Typography sx={{ fontSize: "10px", color: "text.secondary" }}>
                       · {item.analysis.confidence}%
                     </Typography>
                   </Box>
-                  <Typography sx={{ fontSize: "10px", color: "#94a3b8" }}>
+                  <Typography sx={{ fontSize: "10px", color: "text.secondary" }}>
                     {formatTime(item.timestamp)}
                   </Typography>
                 </Box>
