@@ -2,7 +2,6 @@ import torch
 from PIL import Image
 from transformers import AutoImageProcessor, SiglipForImageClassification
 
-
 class BaseImageClassifier:
     def __init__(
         self, model_name: str, id2label: dict[str, str], real_key='real'
@@ -36,7 +35,6 @@ class BaseImageClassifier:
 
         return round(real_score * 100, 1)
 
-
 class AIvsHumanClassifier(BaseImageClassifier):
     """
     dima806/ai_vs_human_generated_image_detection
@@ -57,7 +55,6 @@ class AIvsHumanClassifier(BaseImageClassifier):
         raw_score = super().analyze(image)
         adjusted_score = min(100.0, raw_score + self.real_bias)
         return round(adjusted_score, 1)
-
 
 class NYUADClassifier(BaseImageClassifier):
     """

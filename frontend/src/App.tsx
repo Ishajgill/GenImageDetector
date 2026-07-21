@@ -1,16 +1,28 @@
-import { useState, useMemo, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useMemo } from "react";
 import {
   ThemeProvider,
   CssBaseline,
   Box,
-  IconButton,
-  Tooltip,
   Button,
-  Link,
   Typography,
+  Avatar,
+  Tooltip,
+  IconButton,
+  Link,
 } from "@mui/material";
-import { Brightness4, Brightness7, Login, Logout } from "@mui/icons-material";
-import { darkTheme, lightTheme } from "./theme";
+import { Login, Logout, History, DarkMode, LightMode } from "@mui/icons-material";
+import { makeTheme } from "./theme";
+
+type ColorMode = "light" | "dark";
+const COLOR_MODE_KEY = "color-mode";
+
+const getInitialMode = (): ColorMode => {
+  if (typeof window === "undefined") return "light";
+  const stored = window.localStorage.getItem(COLOR_MODE_KEY);
+  if (stored === "light" || stored === "dark") return stored;
+  // Default to light; users opt into dark via the toggle (which is persisted).
+  return "light";
+};
 import "./App.css";
 import { Analyzer } from "./components/analyzer/Analyzer";
 import { Sidebar } from "./components/sidebar/Sidebar";
@@ -18,165 +30,410 @@ import { AuthProvider } from "./providers/AuthProvider";
 import { AppProvider } from "./providers/AppProvider";
 import { AuthDialog } from "./components/auth/AuthDialog";
 import { AuthContext } from "./contexts/AuthContext";
+import { AppContext } from "./contexts/AppContext";
+import { HowItWorks } from "./components/HowItWorks";
 
 const AppContent = () => {
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem("darkMode");
-    return saved !== null ? JSON.parse(saved) : true;
-  });
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
-  const theme = useMemo(() => (darkMode ? darkTheme : lightTheme), [darkMode]);
-  const authContext = useContext(AuthContext);
+  const [page, setPage] = useState<"home" | "how-it-works">("home");
+  const [showHistory, setShowHistory] = useState(false);
+  const [mode, setMode] = useState<ColorMode>(getInitialMode);
+
+  const theme = useMemo(() => makeTheme(mode), [mode]);
 
   useEffect(() => {
-    localStorage.setItem("darkMode", JSON.stringify(darkMode));
-  }, [darkMode]);
+    window.localStorage.setItem(COLOR_MODE_KEY, mode);
+  }, [mode]);
 
-  const handleLogout = () => {
-    console.log("Logout clicked", authContext);
-    if (authContext) {
-      authContext.logout();
-    }
+  const toggleMode = () =>
+    setMode((prev) => (prev === "dark" ? "light" : "dark"));
+
+  const authContext = useContext(AuthContext);
+  const appContext = useContext(AppContext);
+  const user = authContext?.user;
+
+  const goHome = () => {
+    appContext?.setCurrentResult(null);
+    setPage("home");
+    window.history.pushState({}, "", "/");
   };
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+
+      <Box
+        sx={{
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 0,
+          overflow: "hidden",
+        }}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            width: 600,
+            height: 600,
+            borderRadius: "60% 40% 30% 70%/60% 30% 70% 40%",
+            background:
+              "linear-gradient(135deg,rgba(99,102,241,0.07),rgba(139,92,246,0.05))",
+            top: -200,
+            right: -100,
+            animation: "blob 10s ease-in-out infinite",
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            width: 450,
+            height: 450,
+            borderRadius: "30% 60% 70% 40%/50% 60% 30% 60%",
+            background:
+              "linear-gradient(135deg,rgba(236,72,153,0.05),rgba(251,146,60,0.04))",
+            bottom: 0,
+            left: -100,
+            animation: "blob 12s ease-in-out infinite 3s",
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            width: 350,
+            height: 350,
+            borderRadius: "50% 50% 30% 70%/40% 60% 40% 60%",
+            background:
+              "linear-gradient(135deg,rgba(34,211,238,0.05),rgba(99,102,241,0.04))",
+            top: "40%",
+            left: "40%",
+            animation: "blob 8s ease-in-out infinite 5s",
+          }}
+        />
+      </Box>
+
       <Box
         sx={{
           display: "flex",
           height: "100vh",
-          width: "100vw",
           overflow: "hidden",
-          bgcolor: "background.default",
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        <Sidebar />
+        {page === "home" && showHistory && <Sidebar />}
+
         <Box
-          component="main"
           sx={{
             flex: 1,
-            overflow: "auto",
             display: "flex",
-            justifyContent: "center",
-            position: "relative",
+            flexDirection: "column",
+            overflow: "hidden",
+            minWidth: 0,
           }}
         >
-          {/* Top right buttons */}
           <Box
             sx={{
-              position: "absolute",
-              top: 16,
-              right: 16,
-              zIndex: 1000,
               display: "flex",
-              gap: 1,
+              alignItems: "center",
+              gap: 1.5,
+              px: 3,
+              py: 1.5,
+              background: (t) =>
+                t.palette.mode === "dark"
+                  ? "rgba(24,24,38,0.85)"
+                  : "rgba(255,255,255,0.85)",
+              backdropFilter: "blur(20px)",
+              borderBottom: "1px solid",
+              borderColor: "divider",
+              boxShadow: (t) =>
+                t.palette.mode === "dark"
+                  ? "0 1px 20px rgba(0,0,0,0.4)"
+                  : "0 1px 20px rgba(0,0,0,0.04)",
             }}
           >
-            {/* Auth button */}
-            {authContext?.user ? (
-              <Tooltip title="Logout">
-                <Button
-                  key={`auth-${authContext.user.id}`}
-                  variant="outlined"
-                  startIcon={<Logout />}
-                  onClick={handleLogout}
-                  size="small"
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.25,
+                cursor: "pointer",
+              }}
+              onClick={goHome}
+            >
+              <Box
+                sx={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 2,
+                  background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 4px 12px rgba(99,102,241,0.3)",
+                }}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#fff"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                 >
-                  {authContext.user.username}
-                </Button>
+                  <rect x="3" y="3" width="18" height="18" rx="4" />
+                  <circle cx="8.5" cy="8.5" r="1.5" fill="#fff" />
+                  <path d="M21 15l-5-5-4 4-2-2-4 4" />
+                </svg>
+              </Box>
+              <Typography
+                sx={{
+                  fontFamily: "'Syne',sans-serif",
+                  fontWeight: 800,
+                  fontSize: "15px",
+                  color: "text.primary",
+                }}
+              >
+                GenImage
+                <Box component="span" sx={{ color: "#6366f1" }}>
+                  Detector
+                </Box>
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: { xs: "none", md: "flex" }, gap: 0.5, ml: 2 }}>
+              <Button
+                size="small"
+                onClick={goHome}
+                sx={{
+                  color: page === "home" ? "#6366f1" : "#64748b",
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  bgcolor:
+                    page === "home" ? "rgba(99,102,241,0.06)" : "transparent",
+                  "&:hover": { color: "text.primary", bgcolor: "action.hover" },
+                }}
+              >
+                Home
+              </Button>
+              <Button
+                size="small"
+                onClick={() => setPage("how-it-works")}
+                sx={{
+                  color: page === "how-it-works" ? "#6366f1" : "#64748b",
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  bgcolor:
+                    page === "how-it-works"
+                      ? "rgba(99,102,241,0.06)"
+                      : "transparent",
+                  "&:hover": { color: "text.primary", bgcolor: "action.hover" },
+                }}
+              >
+                How it works
+              </Button>
+              <Button
+                size="small"
+                onClick={() =>
+                  window.open("http://localhost:8000/docs", "_blank")
+                }
+                sx={{
+                  color: "#64748b",
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  "&:hover": { color: "text.primary", bgcolor: "action.hover" },
+                }}
+              >
+                API
+              </Button>
+            </Box>
+
+            <Box sx={{ flex: 1 }} />
+
+            {page === "home" && (
+              <Tooltip title={showHistory ? "Hide History" : "Show History"}>
+                <IconButton
+                  onClick={() => setShowHistory((prev) => !prev)}
+                  sx={{
+                    color: showHistory ? "#6366f1" : "#64748b",
+                    border: "1px solid rgba(99,102,241,0.15)",
+                    bgcolor: showHistory
+                      ? "rgba(99,102,241,0.08)"
+                      : "transparent",
+                    "&:hover": { bgcolor: "rgba(99,102,241,0.12)" },
+                  }}
+                >
+                  <History />
+                </IconButton>
               </Tooltip>
+            )}
+            {user ? (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Avatar
+                  sx={{
+                    width: 30,
+                    height: 30,
+                    bgcolor: "rgba(99,102,241,0.1)",
+                    color: "#6366f1",
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                    border: "1px solid rgba(99,102,241,0.2)",
+                  }}
+                >
+                  {user.username[0].toUpperCase()}
+                </Avatar>
+                <Typography
+                  sx={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "text.primary",
+                    display: { xs: "none", sm: "block" },
+                  }}
+                >
+                  {user.username}
+                </Typography>
+                <Tooltip title="Sign out">
+                  <IconButton
+                    size="small"
+                    onClick={authContext?.logout}
+                    sx={{ color: "#94a3b8", "&:hover": { color: "#e11d48" } }}
+                  >
+                    <Logout fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             ) : (
               <Button
-                key="auth-login"
-                variant="outlined"
+                variant="contained"
+                size="small"
                 startIcon={<Login />}
                 onClick={() => setAuthDialogOpen(true)}
-                size="small"
+                sx={{ fontSize: "13px" }}
               >
-                Login
+                Sign In/Sign Up
               </Button>
             )}
-
-            {/* Theme toggle button */}
-            <Tooltip
-              title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              <IconButton
-                onClick={() => setDarkMode(!darkMode)}
-                color="inherit"
-              >
-                {darkMode ? <Brightness7 /> : <Brightness4 />}
-              </IconButton>
-            </Tooltip>
           </Box>
 
           <Box
             sx={{
+              flex: 1,
+              overflowY: "auto",
               display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              width: "100%",
-              minHeight: "100%",
-              pt: 4,
-              pb: 2,
+              justifyContent: "center",
             }}
           >
-            <Box sx={{ flex: 1, display: "flex", alignItems: "center" }}>
-              <Analyzer />
-            </Box>
-
-            {/* Footer */}
-            <Box
-              component="footer"
-              sx={{
-                textAlign: "center",
-                color: "text.secondary",
-              }}
+            {page === "home" ? <Analyzer /> : <HowItWorks onBack={goHome} />}
+          </Box>
+          <Box
+            sx={{
+              textAlign: "center",
+              py: 1.5,
+              borderTop: "1px solid",
+              borderColor: "divider",
+              bgcolor: (t) =>
+                t.palette.mode === "dark"
+                  ? "rgba(24,24,38,0.7)"
+                  : "rgba(255,255,255,0.7)",
+            }}
+          >
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontSize: "12px" }}
             >
-              <Typography variant="body2">
-                <Link
-                  href="http://localhost:8000/docs"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{ mx: 1 }}
-                >
-                  API Docs
-                </Link>
-                •
-                <Link
-                  href="https://github.com/RyanAIIen/GenImageDetector"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{ mx: 1 }}
-                >
-                  GitHub
-                </Link>
-              </Typography>
-            </Box>
+              <Link
+                href="http://localhost:8000/docs"
+                target="_blank"
+                sx={{
+                  mx: 1,
+                  color: "inherit",
+                  "&:hover": { color: "#6366f1" },
+                }}
+              >
+                API Docs
+              </Link>
+              ·
+              <Link
+                component="button"
+                onClick={() => setPage("how-it-works")}
+                sx={{
+                  mx: 1,
+                  color: "inherit",
+                  cursor: "pointer",
+                  "&:hover": { color: "#6366f1" },
+                  textDecoration: "none",
+                  fontSize: "12px",
+                  background: "none",
+                  border: "none",
+                }}
+              >
+                How it works
+              </Link>
+              ·
+              <Link
+                href="https://github.com/Ishajgill/GenImageDetector"
+                target="_blank"
+                sx={{
+                  mx: 1,
+                  color: "inherit",
+                  "&:hover": { color: "#6366f1" },
+                }}
+              >
+                GitHub
+              </Link>
+            </Typography>
           </Box>
         </Box>
       </Box>
 
+      <Tooltip
+        title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        placement="left"
+      >
+        <IconButton
+          onClick={toggleMode}
+          aria-label="Toggle dark mode"
+          sx={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            zIndex: 1300,
+            width: 48,
+            height: 48,
+            color: "#fff",
+            background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+            boxShadow: "0 6px 20px rgba(99,102,241,0.4)",
+            "&:hover": {
+              background: "linear-gradient(135deg,#4f46e5,#7c3aed)",
+              transform: "translateY(-2px)",
+            },
+            transition: "transform 0.2s ease, background 0.2s ease",
+          }}
+        >
+          {mode === "dark" ? (
+            <LightMode fontSize="small" />
+          ) : (
+            <DarkMode fontSize="small" />
+          )}
+        </IconButton>
+      </Tooltip>
+
       <AuthDialog
         open={authDialogOpen}
-        onClose={() => {
-          console.log("Closing auth dialog");
-          setAuthDialogOpen(false);
-        }}
+        onClose={() => setAuthDialogOpen(false)}
       />
     </ThemeProvider>
   );
 };
 
-export const App = () => {
-  return (
-    <AuthProvider>
-      <AppProvider>
-        <AppContent />
-      </AppProvider>
-    </AuthProvider>
-  );
-};
+export const App = () => (
+  <AuthProvider>
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
+  </AuthProvider>
+);
 
 export default App;

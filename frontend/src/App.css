@@ -1,31 +1,16 @@
-html,
-body {
-  height: 100vh;
+@keyframes blob {
+  0%, 100% { border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; }
+  50% { border-radius: 30% 60% 70% 40%/50% 60% 30% 60%; }
 }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float1 { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-16px) rotate(1deg)} }
+@keyframes float2 { 0%,100%{transform:translateY(0) rotate(1deg)} 50%{transform:translateY(-12px) rotate(-1deg)} }
+@keyframes float3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+@keyframes gradText { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes scanLine { 0%{top:-2px;opacity:0} 10%{opacity:1} 90%{opacity:0.5} 100%{top:100%;opacity:0} }
+@keyframes dotPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
 
-:root {
-  /* Light mode default colors */
-  --success-bg: #d4edda;
-  --success-text: #155724;
-  --warning-bg: #fff3cd;
-  --warning-text: #664d03;
-  --error-bg: #f8d7da;
-  --error-text: #721c24;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Dark mode colors */
-    --success-bg: #28a745;
-    --success-text: #b4ed9a;
-    --warning-bg: #ffa100;
-    --warning-text: #ffe670;
-    --error-bg: #dc3545;
-    --error-text: #f8b7ba;
-  }
-}
-
-#root {
-  height: 100%;
-  background: "green";
-}
+.fade-in-up { animation: fadeUp 0.4s ease forwards; }

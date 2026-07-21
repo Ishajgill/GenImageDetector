@@ -1,8 +1,10 @@
 """Analysis API routes for image upload and analysis."""
 import io
+import os
 import base64
 from typing import Optional
 from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Depends
+from huggingface_hub import hf_hub_download
 from PIL import Image
 from sqlalchemy.orm import Session
 from db.database import get_db
@@ -10,34 +12,46 @@ from analysis.models import Analysis, ModelResult
 from analysis.schemas import AnalysisResponse, HistoryMigrationRequest, HistoryMigrationResponse
 from auth.models import User
 from auth.routes import get_current_user
-from ml.classifiers.base import AIvsHumanClassifier, NYUADClassifier
 from ml.classifiers.cnnspot import CNNSpotClassifier
 from ml.classifiers.effort import EffortClassifier
-from ml.classifiers.demo import DemoClassifier
-
+from ml.classifiers.npr import NPRClassifier
+from ml.classifiers.vib import VIBClassifier
 
 router = APIRouter(tags=["Analysis"])
 
+# Public Hugging Face repo hosting the model weights (flat layout). Override with
+# the HF_WEIGHTS_REPO env var if the weights move to a different repo.
+HF_REPO_ID = os.getenv("HF_WEIGHTS_REPO", "danielcobb/GenImageDetector-weights")
+
+
+def _weights(filename: str) -> str:
+    """Download a weight file from the Hugging Face Hub and return its local path.
+
+    Files are cached by huggingface_hub, so this only hits the network on the
+    first run (or when the remote file changes).
+    """
+    return hf_hub_download(repo_id=HF_REPO_ID, filename=filename)
+
+
 # Initialize classifiers
 cnnspot_classifier = CNNSpotClassifier(
-    "ml/models/CNNSpot/2025_10_22_epoch_best.pth",
+    _weights("2025_10_22_epoch_best.pth"),
     crop_size=224,
     quiet=True
 )
 
-ai_vs_human_classifier = AIvsHumanClassifier()
-
-nyuad_classifier = NYUADClassifier()
-
+npr_classifier = NPRClassifier(
+    _weights("NPR_GenImage_sdv4.pth"),
+     quiet=True,
+)
 effort_classifier = EffortClassifier(
-     r"C:\Users\gillc\model_epoch_best.pth",
+    _weights("effort_clip_L14_trainOn_sdv14.pth"),
     quiet=True
 )
-
-nebula_comb_v3_classifier = DemoClassifier(seed="nebula")
-
-open_x8100_classifier = DemoClassifier(seed="quasar")
-
+vib_classifier = VIBClassifier(
+    _weights("best.pth"),
+    quiet=True
+)
 
 @router.post("/analyze")
 async def analyze_image(
@@ -93,13 +107,12 @@ async def analyze_image(
 
     # Run analysis
     results = {
-        "AI_vs_Human": ai_vs_human_classifier.analyze(img),
         "CNNSpot": cnnspot_classifier.analyze(img),
         "Effort": effort_classifier.analyze(img),
-        "Nebula_comb_v3": nebula_comb_v3_classifier.analyze(img, filename=filename),
-        "NYUAD": nyuad_classifier.analyze(img),
-        "open-X8100": open_x8100_classifier.analyze(img, filename=filename),
+        "NPR": npr_classifier.analyze(img),
     }
+    if vib_classifier is not None:
+        results["VIB"] = vib_classifier.analyze(img)
 
     # Calculate aggregate (same as frontend)
     confidences = list(results.values())
@@ -134,7 +147,6 @@ async def analyze_image(
 
     return {"analysis_id": analysis_id, "results": results}
 
-
 @router.get("/history", response_model=list[AnalysisResponse])
 async def get_history(current_user: Optional[User] = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get user's analysis history."""
@@ -143,7 +155,6 @@ async def get_history(current_user: Optional[User] = Depends(get_current_user), 
 
     analyses = db.query(Analysis).filter(Analysis.user_id == current_user.id).order_by(Analysis.created_at.desc()).all()
     return analyses
-
 
 @router.post("/migrate-history", response_model=HistoryMigrationResponse)
 async def migrate_history(

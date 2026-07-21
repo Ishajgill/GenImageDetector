@@ -184,7 +184,7 @@ class EffortClassifier(PyTorchClassifier):
 
     def load_weights(self):
         print(f"[Effort] Loading checkpoint from {self.model_path}")
-        ckpt = torch.load(self.model_path, map_location=self.device)
+        ckpt = torch.load(self.model_path, map_location=self.device, weights_only=False)
         print("[Effort] Checkpoint loaded into memory")
 
         if isinstance(ckpt, dict) and "state_dict" in ckpt:
