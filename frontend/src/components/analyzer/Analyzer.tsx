@@ -85,7 +85,7 @@ const FEATURES = [
   {
     icon: "⚡",
     label: "Lightning fast",
-    desc: "Results in under 3 seconds.",
+    desc: "Results in under 10 seconds.",
     color: "rgba(99,102,241,0.08)",
   },
   {
@@ -167,7 +167,9 @@ const ConfidenceGauge = ({ confidence }: { confidence: number }) => {
   const progress = (animated / 100) * circumference;
   const color = isReal ? "#16a34a" : "#e11d48";
   const trackColor =
-    theme.palette.mode === "dark" ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)";
+    theme.palette.mode === "dark"
+      ? "rgba(255,255,255,0.12)"
+      : "rgba(0,0,0,0.08)";
   return (
     <Box
       sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
@@ -800,8 +802,7 @@ export const Analyzer = () => {
         {loading && (
           <Box
             sx={{
-              bgcolor: (t) =>
-                t.palette.mode === "dark" ? "#181826" : "#fff",
+              bgcolor: (t) => (t.palette.mode === "dark" ? "#181826" : "#fff"),
               border: (t) =>
                 t.palette.mode === "dark"
                   ? "1px solid rgba(255,255,255,0.08)"
