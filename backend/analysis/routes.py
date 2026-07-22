@@ -61,9 +61,7 @@ npr_classifier = NPRClassifier(
 )
 
 npr_supcon_classifier = NPRSupConClassifier(
-    model_path=(
-        _weights("npr_biggan_sd14_adm_best_linear.pth")
-    ),
+    _weights("npr_biggan_sd14_adm_best_linear.pth"),
     quiet=True,
 )
 
