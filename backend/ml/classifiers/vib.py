@@ -90,9 +90,18 @@ class VIBClassifier(PyTorchClassifier):
     def get_transforms(self):
         return transforms.Compose(
             [
+                transforms.Lambda(lambda image: image.convert("RGB")),
+                transforms.Resize(
+                    CROP_SIZE,
+                    interpolation=transforms.InterpolationMode.BICUBIC,
+                    antialias=True,
+                ),
                 transforms.CenterCrop(CROP_SIZE),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=CLIP_MEAN, std=CLIP_STD),
+                transforms.Normalize(
+                    mean=CLIP_MEAN,
+                    std=CLIP_STD,
+                ),
             ]
         )
 
