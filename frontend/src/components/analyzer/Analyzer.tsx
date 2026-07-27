@@ -915,6 +915,8 @@ export const Analyzer = () => {
                     color: (t) =>
                       t.palette.mode === "dark" ? "#e8e8f3" : "#1a1a2e",
                     mb: 0.5,
+                    overflowWrap: "anywhere",
+                    wordBreak: "break-word",
                   }}
                 >
                   {currentResult.filename}
