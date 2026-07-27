@@ -11,6 +11,8 @@ __pycache__/
 *.sln
 *.suo
 *.sw?
+backend/ml/models/NPR/**/*.pth
+backend/ml/models/NPR_SupCon/*.pth
 data/
 dist-ssr/
 dist/

@@ -61,7 +61,9 @@ npr_classifier = NPRClassifier(
 )
 
 npr_supcon_classifier = NPRSupConClassifier(
-    _weights("npr_biggan_sd14_adm_best_linear.pth"),
+    "ml/models/NPR_SupCon/"
+    "npr_biggan_sd14_adm_vqdm_midjourney_best_linear.pth",
+    device="cpu",
     quiet=True,
 )
 
@@ -157,13 +159,11 @@ async def analyze_image(
     # Run all classifiers.
     results = {
         "CNNSpot": cnnspot_classifier.analyze(img),
-         "Effort": effort_classifier.analyze(img),
+        "Effort": effort_classifier.analyze(img),
         #"NPR": npr_classifier.analyze(img),
         "NPR-SupCon": npr_supcon_classifier.analyze(img),
-        "VIB" : vib_classifier.analyze(img),
+        "VIB": vib_classifier.analyze(img),
     }
-
-
 
     # Calculate aggregate confidence.
     confidences = list(results.values())
