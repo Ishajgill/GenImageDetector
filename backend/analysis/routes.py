@@ -51,10 +51,12 @@ cnnspot_classifier = CNNSpotClassifier(
     quiet=True,
 )
 
+"""
 effort_classifier = EffortClassifier(
     _weights("effort_clip_L14_trainOn_sdv14.pth"),
     quiet=True,
 )
+"""
 
 effort_supcon_classifier = EffortSupConClassifier(
     _weights("last.pth"),
@@ -164,7 +166,7 @@ async def analyze_image(
     # Run all classifiers.
     results = {
         "CNNSpot": cnnspot_classifier.analyze(img),
-         "Effort": effort_classifier.analyze(img),
+         #"Effort": effort_classifier.analyze(img),
         #"NPR": npr_classifier.analyze(img),
         "NPR-SupCon": npr_supcon_classifier.analyze(img),
         "Effort_SupCon": effort_supcon_classifier.analyze(img),
