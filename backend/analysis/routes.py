@@ -174,8 +174,8 @@ async def analyze_image(
         "CNNSpot": cnnspot_classifier.analyze(img),
          #"Effort": effort_classifier.analyze(img),
         #"NPR": npr_classifier.analyze(img),
-        "NPR-SupCon": npr_supcon_classifier.analyze(img),
-        "Effort_SupCon": effort_supcon_classifier.analyze(img),
+        "NPR": npr_supcon_classifier.analyze(img),
+        "Effort": effort_supcon_classifier.analyze(img),
         "SPAI": spai_classifier.analyze(img),
         "VIB" : vib_classifier.analyze(img),
     }
