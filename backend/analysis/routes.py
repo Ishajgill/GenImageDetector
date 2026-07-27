@@ -21,6 +21,7 @@ from auth.routes import get_current_user
 from db.database import get_db
 from ml.classifiers.cnnspot import CNNSpotClassifier
 from ml.classifiers.effort import EffortClassifier
+from ml.classifiers.effort_supcon import EffortSupConClassifier
 from ml.classifiers.npr import NPRClassifier
 from ml.classifiers.npr_supcon import NPRSupConClassifier
 from ml.classifiers.spai import SPAIClassifier
@@ -51,8 +52,16 @@ cnnspot_classifier = CNNSpotClassifier(
     quiet=True,
 )
 
+"""
 effort_classifier = EffortClassifier(
     _weights("effort_clip_L14_trainOn_sdv14.pth"),
+    quiet=True,
+)
+"""
+
+effort_supcon_classifier = EffortSupConClassifier(
+    _weights("last.pth"),
+    _weights("best_linear_effort.pth"),
     quiet=True,
 )
 
@@ -163,9 +172,10 @@ async def analyze_image(
     # Run all classifiers.
     results = {
         "CNNSpot": cnnspot_classifier.analyze(img),
-         "Effort": effort_classifier.analyze(img),
+         #"Effort": effort_classifier.analyze(img),
         #"NPR": npr_classifier.analyze(img),
         "NPR-SupCon": npr_supcon_classifier.analyze(img),
+        "Effort_SupCon": effort_supcon_classifier.analyze(img),
         "SPAI": spai_classifier.analyze(img),
         "VIB" : vib_classifier.analyze(img),
     }
