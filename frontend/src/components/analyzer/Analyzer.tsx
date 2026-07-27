@@ -637,7 +637,7 @@ export const Analyzer = () => {
                 />
               </Button>
               <Typography sx={{ fontSize: 12, color: "#94a3b8", mt: 1.5 }}>
-                PNG or JPEG · up to 10MB · 100% free
+                PNG or JPEG · up to 10MB · Try for free
               </Typography>
             </Box>
             {/* ── Feature cards ── */}
