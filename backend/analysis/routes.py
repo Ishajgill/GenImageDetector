@@ -24,6 +24,7 @@ from ml.classifiers.effort import EffortClassifier
 from ml.classifiers.effort_supcon import EffortSupConClassifier
 from ml.classifiers.npr import NPRClassifier
 from ml.classifiers.npr_supcon import NPRSupConClassifier
+from ml.classifiers.spai import SPAIClassifier
 from ml.classifiers.vib import VIBClassifier
 
 
@@ -71,6 +72,11 @@ npr_classifier = NPRClassifier(
 
 npr_supcon_classifier = NPRSupConClassifier(
     _weights("npr_biggan_sd14_adm_best_linear.pth"),
+    quiet=True,
+)
+
+spai_classifier = SPAIClassifier(
+    _weights("spai_biggan_sd14_adm_best_classifier.pth"),
     quiet=True,
 )
 
@@ -170,6 +176,7 @@ async def analyze_image(
         #"NPR": npr_classifier.analyze(img),
         "NPR-SupCon": npr_supcon_classifier.analyze(img),
         "Effort_SupCon": effort_supcon_classifier.analyze(img),
+        "SPAI": spai_classifier.analyze(img),
         "VIB" : vib_classifier.analyze(img),
     }
 
